@@ -122,7 +122,7 @@ export const AuthView: React.FC = () => {
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              Register New Account
+              Register 
             </button>
           </div>
 
@@ -144,7 +144,7 @@ export const AuthView: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Rahul Sharma"
+                    placeholder="Full Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
@@ -202,7 +202,7 @@ export const AuthView: React.FC = () => {
                   </label>
                   <input
                     type="tel"
-                    placeholder="+91..."
+                    placeholder="+91 XXXXX XXXXX"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium"
@@ -239,7 +239,6 @@ export const AuthView: React.FC = () => {
 
           <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-1.5 text-xs text-slate-400">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Secure session storage & data isolation</span>
           </div>
         </div>
       </div>
