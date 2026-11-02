@@ -28,7 +28,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-xl tracking-tight text-slate-900">Rupee<span className="text-blue-600">Track</span></span>
-                <span className="hidden sm:inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-[50px] bg-blue-50 text-blue-700 border border-blue-200">PWA</span>
               </div>
               <p className="hidden sm:block text-[11px] text-slate-400 font-medium">Smart Expense Management</p>
             </div>
