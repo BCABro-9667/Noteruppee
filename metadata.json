@@ -1,0 +1,6 @@
+{
+  "name": "RupeeTrack - Modern Expense Management PWA",
+  "description": "Production-ready expense management and ledger application with multi-account tracking, customizable debit/credit terminology, receipt attachments, and offline PWA capabilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
