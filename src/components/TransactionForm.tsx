@@ -240,6 +240,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                   <option value="Cash">Cash</option>
                   <option value="Card">Card (Credit/Debit)</option>
                   <option value="Net Banking">Net Banking / Wire</option>
+                  <option value="RWallet(RailOne)">RWallet(RailOne)</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
