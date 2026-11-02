@@ -96,9 +96,7 @@ export const CreateExpenseModal: React.FC<CreateExpenseModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/60 to-white shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-              <Sparkles className="w-5 h-5" />
-            </div>
+
             <div>
               <h2 className="text-lg font-bold text-slate-900">Create New Expense</h2>
               <p className="text-xs text-slate-500">Track budgets, trips, or individual ledgers</p>
