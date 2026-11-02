@@ -137,7 +137,7 @@ export const CreateExpenseModal: React.FC<CreateExpenseModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-              Amount / Initial Budget ({currencySymbol}) <span className="text-rose-500">*</span>
+              Amount ({currencySymbol}) <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-base">
@@ -154,9 +154,7 @@ export const CreateExpenseModal: React.FC<CreateExpenseModalProps> = ({
                 className="w-full pl-10 pr-4 py-3 rounded-[50px] border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
               />
             </div>
-            <p className="mt-1 text-[11px] text-slate-400">
-              Starting allocated amount for this expense account.
-            </p>
+           
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
