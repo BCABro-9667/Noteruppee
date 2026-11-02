@@ -61,17 +61,7 @@ export const AuthView: React.FC = () => {
     <div className="min-h-screen bg-white flex flex-col justify-center items-center px-4 py-8 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         {/* Brand Icon & Heading */}
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center text-white shadow-xl shadow-blue-500/25 font-bold text-2xl tracking-tight mb-4">
-            ₹
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Rupee<span className="text-blue-600">Track</span>
-          </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500">
-            Smart Expense & Ledger Management PWA
-          </p>
-        </div>
+      
 
         {/* Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 border border-slate-200/90">
