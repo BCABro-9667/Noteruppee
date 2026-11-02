@@ -145,7 +145,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             <input
               type="text"
               required
-              placeholder="e.g. Flight ticket, Grocery, Salary, Dinner"
+              placeholder="Transcation Name"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-4 py-2.5 rounded-[50px] border border-slate-200 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
@@ -249,7 +249,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             {/* Notes */}
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
-                Notes / Description (Optional)
+                Description
               </label>
               <textarea
                 rows={2}
@@ -263,7 +263,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             {/* Receipt / Screenshot Attachment */}
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
-                Attach Bill / Receipt Screenshot
+                Receipt Screenshot
               </label>
               <div className="flex items-center gap-3">
                 <input
