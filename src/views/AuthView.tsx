@@ -227,9 +227,7 @@ export const AuthView: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-1.5 text-xs text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          </div>
+    
         </div>
       </div>
     </div>
