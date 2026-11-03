@@ -42,6 +42,11 @@
       "token": "841d8f81644e304391126d666898547cbbae0f7fde6f77008f2d9def559be352",
       "userId": "user-demo-1",
       "createdAt": "2026-11-02T20:47:46.365Z"
+    },
+    {
+      "token": "0cf3867454296ab66052f49d644fc658b6163989fba5064b766b4ce5bd7e80b1",
+      "userId": "user-demo-1",
+      "createdAt": "2026-11-03T11:47:32.156Z"
     }
   ],
   "expenses": [

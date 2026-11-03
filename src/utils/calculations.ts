@@ -1,4 +1,4 @@
-import { Expense, ExpenseSummary, OverallSummary, Transaction, TransactionType, UserSettings } from '../types/index.ts';
+import type { Expense, ExpenseSummary, OverallSummary, Transaction, TransactionType, UserSettings } from '../types/index.ts';
 
 /**
  * Calculates Total, Expended, and Remaining amounts for a single expense according to business logic:

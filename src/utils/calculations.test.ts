@@ -7,7 +7,7 @@ import {
   getLabelForType,
   filterAndSortTransactions,
 } from './calculations.ts';
-import { Expense, Transaction } from '../types/index.ts';
+import type { Expense, Transaction } from '../types/index.ts';
 
 test('calculateExpenseSummary calculates Total, Expended, and Remaining correctly', () => {
   const transactions: Transaction[] = [

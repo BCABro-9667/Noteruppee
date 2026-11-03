@@ -97,14 +97,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               <PWAInstallButton />
             </div>
 
-            {/* Create Expense Desktop Button */}
+            {/* Create Expense Button - hidden on mobile devices since mobile bottom nav contains the (+) button */}
             <button
               onClick={onOpenCreateExpense}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-[50px] text-sm font-bold shadow-sm shadow-blue-500/25 transition-all active:scale-95"
+              className="hidden sm:flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-[50px] text-sm font-bold shadow-sm shadow-blue-500/25 transition-all active:scale-95 cursor-pointer"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span className="hidden sm:inline">Create Expense</span>
-              <span className="sm:hidden">Create</span>
+              <span>Create Expense</span>
             </button>
 
             {/* User Profile Avatar Pill */}

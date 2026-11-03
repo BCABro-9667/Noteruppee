@@ -15,7 +15,7 @@ import { ExpenseDetailView } from './views/ExpenseDetailView.tsx';
 import { TransactionsView } from './views/TransactionsView.tsx';
 import { AnalyticsView } from './views/AnalyticsView.tsx';
 import { ProfileSettingsView } from './views/ProfileSettingsView.tsx';
-import { AuthView } from './views/AuthView.tsx';
+import { LandingPageView } from './views/LandingPageView.tsx';
 import { Expense } from './types/index.ts';
 import { WifiOff, Loader2 } from 'lucide-react';
 
@@ -82,9 +82,9 @@ function MainApp() {
     );
   }
 
-  // Not logged in -> Render Auth View
+  // Not logged in -> Render Full Landing Page (Home with Login/Register on right side, Services, Why Us, Contact Us)
   if (!user) {
-    return <AuthView />;
+    return <LandingPageView />;
   }
 
   return (

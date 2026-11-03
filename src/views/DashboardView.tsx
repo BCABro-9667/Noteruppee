@@ -109,7 +109,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Expense Cards List: Left side name, Right side current amount and expend btn (dots/img removed) */}
       {filteredExpenses.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-8 sm:p-12 text-center">
+        <div className="bg-white rounded-3xl shadow-2xs p-8 sm:p-12 text-center border-0">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
             <PieChart className="w-7 h-7" />
           </div>
@@ -130,12 +130,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             return (
               <div
                 key={expense.id}
-                className="bg-white rounded-2xl border border-slate-200/90 hover:border-slate-300 shadow-2xs transition-all overflow-hidden"
+                className="bg-white rounded-2xl shadow-2xs hover:shadow-xs transition-all overflow-hidden border-0 outline-none"
               >
                 {/* Main Row: Left side Name, Right side Current Amount + Expend Btn (no dots) */}
                 <div
                   onClick={() => onSelectExpense(expense.id)}
-                  className="flex items-center justify-between p-4 sm:p-4.5 gap-3 cursor-pointer"
+                  className="flex items-center justify-between p-4 sm:p-4.5 gap-3 cursor-pointer select-none hover:bg-slate-50/40 transition-colors"
                 >
                   {/* Left Side: Expense Name */}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -188,7 +188,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                 {/* Expanded Details Section */}
                 {isExpanded && (
-                  <div className="px-5 py-4 bg-slate-50/80 border-t border-slate-100 text-xs text-slate-600 space-y-3 animate-in fade-in duration-150">
+                  <div className="px-5 py-4 bg-slate-50/80 text-xs text-slate-600 space-y-3 animate-in fade-in duration-150 border-0">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">

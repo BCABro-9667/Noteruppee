@@ -337,8 +337,8 @@ export const TransactionsView: React.FC = () => {
             </p>
           </div>
         ) : (
-          /* Transaction list with minimal/zero gap, no card outline/border, separated only by thin greywhite line */
-          <div className="bg-white rounded-2xl overflow-hidden border-0 divide-y divide-slate-100/90">
+          /* Transaction list with clear spacing/gap between individual transaction cards */
+          <div className="space-y-3">
             {filteredList.map((tx) => (
               <TransactionItem
                 key={tx.id}

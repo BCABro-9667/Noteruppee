@@ -108,12 +108,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-5 transition-all">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3.5">
+    <div className="bg-white rounded-3xl shadow-sm p-4 sm:p-5 transition-all border-0 outline-none">
+      <div className="flex items-center justify-between pb-2 mb-3 border-0">
         <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
           <span>Add Transaction</span>
           {successToast && (
-            <span className="flex items-center gap-1 text-xs normal-case font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-[50px] border border-emerald-200 animate-in fade-in">
+            <span className="flex items-center gap-1 text-xs normal-case font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-[50px] animate-in fade-in border-0">
               <CheckCircle2 className="w-3.5 h-3.5" /> Added!
             </span>
           )}
@@ -123,7 +123,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 py-1.5 px-3 rounded-[50px] hover:bg-blue-50 transition"
+          className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 py-1.5 px-3 rounded-[50px] hover:bg-blue-50 transition cursor-pointer border-0"
         >
           <span>{isExpanded ? 'Hide Details' : '+ More Details'}</span>
           {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -131,16 +131,16 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-2.5 mb-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-[50px]">
+        <div className="flex items-center gap-2 p-2.5 mb-3 text-xs text-rose-700 bg-rose-50 rounded-[50px] border-0">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-3">
-        {/* Compact Primary Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-          {/* Transaction Name with 50px border input */}
+        {/* Compact Primary Row with Generous Heights */}
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+          {/* Transaction Name with 50px border input & increased height */}
           <div className="sm:col-span-5">
             <input
               type="text"
@@ -148,11 +148,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
               placeholder="Transcation Name"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-[50px] border border-slate-200 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+              className="w-full h-12 px-4 rounded-[50px] border border-slate-200 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
             />
           </div>
 
-          {/* Amount with Currency & 50px border input */}
+          {/* Amount with Currency & 50px border input & increased height */}
           <div className="sm:col-span-3 relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
               {currencySymbol}
@@ -165,16 +165,16 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-[50px] border border-slate-200 text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+              className="w-full h-12 pl-9 pr-4 rounded-[50px] border border-slate-200 text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
             />
           </div>
 
-          {/* Type Toggle with 50px border buttons */}
-          <div className="sm:col-span-4 flex items-center gap-1.5 p-1 bg-slate-100 rounded-[50px]">
+          {/* Type Toggle with 50px border buttons and increased height */}
+          <div className="sm:col-span-4 flex items-center gap-1.5 p-1 bg-slate-100 rounded-[50px] h-12">
             <button
               type="button"
               onClick={() => setType('DEBIT')}
-              className={`flex-1 py-1.5 px-2 rounded-[50px] text-xs font-bold transition-all text-center ${
+              className={`flex-1 h-full flex items-center justify-center px-3 rounded-[50px] text-xs sm:text-sm font-bold transition-all text-center cursor-pointer ${
                 type === 'DEBIT'
                   ? 'bg-rose-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-rose-700'
@@ -185,7 +185,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             <button
               type="button"
               onClick={() => setType('CREDIT')}
-              className={`flex-1 py-1.5 px-2 rounded-[50px] text-xs font-bold transition-all text-center ${
+              className={`flex-1 h-full flex items-center justify-center px-3 rounded-[50px] text-xs sm:text-sm font-bold transition-all text-center cursor-pointer ${
                 type === 'CREDIT'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-emerald-700'
@@ -198,7 +198,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 
         {/* Expandable Additional Details Section */}
         {isExpanded && (
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="p-4 rounded-2xl bg-slate-50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 border-0">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Date */}
               <div>
@@ -306,18 +306,18 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
         )}
 
-        {/* Primary Submit Button with 50px border btn */}
+        {/* Primary Submit Button with 50px border btn & generous height */}
         <div className="flex justify-end pt-1">
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-[50px] font-bold text-xs sm:text-sm text-white shadow-md transition-all active:scale-[0.98] w-full sm:w-auto ${
+            className={`flex items-center justify-center gap-2 px-8 h-12 sm:h-13 rounded-[50px] font-extrabold text-sm sm:text-base text-white shadow-md transition-all active:scale-[0.98] w-full sm:w-auto cursor-pointer ${
               type === 'DEBIT'
                 ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/25'
                 : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25'
             } disabled:opacity-50`}
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
             <span>
               {isSubmitting
                 ? 'Adding...'
