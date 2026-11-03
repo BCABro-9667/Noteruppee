@@ -303,7 +303,6 @@ export const LandingPageView: React.FC = () => {
             {/* Left Column: Value Proposition & Hero Info */}
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[50px] bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold tracking-wide">
-                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                 <span>The Modern Indian Expense Ledger & Statement Generator</span>
               </div>
 
@@ -547,10 +546,7 @@ export const LandingPageView: React.FC = () => {
                   </button>
                 </form>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-1.5 text-xs text-slate-400">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Encrypted local session • Zero data tracking</span>
-                </div>
+
               </div>
             </div>
           </div>
@@ -839,8 +835,8 @@ export const LandingPageView: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-slate-500">Email Inquiries</p>
-                      <a href="mailto:support@rupeetrack.app" className="text-sm font-bold text-slate-900 hover:text-blue-600">
-                        support@rupeetrack.app
+                      <a href="mailto:avdhesh6968@gmail.com" className="text-sm font-bold text-slate-900 hover:text-blue-600">
+                        avdhesh6968@gmail.com
                       </a>
                     </div>
                   </div>
@@ -861,7 +857,7 @@ export const LandingPageView: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-slate-500">Headquarters</p>
-                      <p className="text-sm font-bold text-slate-900">Bangalore & New Delhi, India</p>
+                      <p className="text-sm font-bold text-slate-900">New Delhi, India</p>
                     </div>
                   </div>
                 </div>
@@ -943,7 +939,7 @@ export const LandingPageView: React.FC = () => {
                           required
                           value={contactName}
                           onChange={(e) => setContactName(e.target.value)}
-                          placeholder="e.g. Ananya Sen"
+                          placeholder="Name"
                           className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                         />
                       </div>
