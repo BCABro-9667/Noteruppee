@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { formatCurrency, getLabelForType } from '../utils/calculations.ts';
 import {
   Edit2,
+  Trash2,
   ChevronDown,
   ChevronUp,
   Calendar,
@@ -17,18 +18,35 @@ import {
 interface TransactionItemProps {
   transaction: Transaction;
   expenseName?: string;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
   onEdit: (transaction: Transaction) => void;
+  onDelete?: (transaction: Transaction) => void;
   onViewReceipt?: (imageUrl: string) => void;
 }
 
 export const TransactionItem: React.FC<TransactionItemProps> = ({
   transaction,
   expenseName,
+  isExpanded: controlledExpanded,
+  onToggleExpand,
   onEdit,
+  onDelete,
   onViewReceipt,
 }) => {
   const { user, currencySymbol } = useAuth();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [internalExpanded, setInternalExpanded] = useState(false);
+
+  // If controlledExpanded is passed, use it, else fallback to internal state
+  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
+
+  const handleToggle = () => {
+    if (onToggleExpand) {
+      onToggleExpand();
+    } else {
+      setInternalExpanded(!internalExpanded);
+    }
+  };
 
   const isDebit = transaction.type === 'DEBIT';
   const label = getLabelForType(transaction.type, user?.settings);
@@ -37,7 +55,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
     <div className="bg-white rounded-2xl shadow-2xs hover:shadow-xs transition-all overflow-hidden border-0 outline-none">
       {/* Primary Row: Clicking anywhere expands/collapses. Without expend show name and amount only */}
       <div
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={handleToggle}
         className="flex items-center justify-between py-3 sm:py-3.5 px-3.5 sm:px-4 gap-3 cursor-pointer select-none hover:bg-slate-50/40 transition-colors"
       >
         {/* Left: ONLY the name without expend */}
@@ -59,9 +77,10 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
 
           {/* Expand / Collapse Chevron Button (hidden on mobile, visible on sm+ screens) */}
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
-              setIsExpanded(!isExpanded);
+              handleToggle();
             }}
             className="hidden sm:inline-flex p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-[50px] transition cursor-pointer"
             aria-label={isExpanded ? 'Collapse transaction details' : 'Expand transaction details'}
@@ -74,7 +93,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
 
       {/* Expanded Details Section: Show ALL details only when expanded */}
       {isExpanded && (
-        <div className="px-4 py-3 bg-slate-50/70 text-xs text-slate-600 space-y-3 animate-in fade-in duration-150 border-0">
+        <div className="px-4 py-3.5 bg-slate-50/70 text-xs text-slate-600 space-y-3 animate-in fade-in duration-150 border-0">
           {/* Metadata Grid */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-slate-500">
             {/* Type badge */}
@@ -146,11 +165,30 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
             </div>
           )}
 
-          {/* Edit button in expanded view */}
-          <div className="flex items-center gap-2 pt-1 justify-end border-0">
+          {/* Action buttons in expanded view: Edit and Delete buttons */}
+          <div className="flex items-center gap-2 pt-1.5 justify-end border-0">
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(transaction);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[50px] bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 text-xs font-semibold shadow-2xs transition cursor-pointer border-0"
+                title="Delete this transaction"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <span>Delete</span>
+              </button>
+            )}
+
             <button
-              onClick={() => onEdit(transaction)}
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-[50px] bg-slate-100 hover:bg-slate-200/70 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer border-0"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(transaction);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-[50px] bg-slate-100 hover:bg-slate-200/80 active:scale-95 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer border-0"
             >
               <Edit2 className="w-3.5 h-3.5 text-blue-600" />
               <span>Edit Details</span>

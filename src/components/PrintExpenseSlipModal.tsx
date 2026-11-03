@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Expense, Transaction, ExpenseSummary } from '../types/index.ts';
 import { formatCurrency, getLabelForType } from '../utils/calculations.ts';
 import { useAuth } from '../context/AuthContext.tsx';
-import { Printer, X, Download, ExternalLink, Check } from 'lucide-react';
+import { Printer, X, Download, ExternalLink, Check, ArrowLeft, FileText } from 'lucide-react';
 
 interface PrintExpenseSlipModalProps {
   isOpen: boolean;
@@ -53,19 +53,26 @@ export const PrintExpenseSlipModal: React.FC<PrintExpenseSlipModalProps> = ({
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    @page {
+      size: A4 portrait;
+      margin: 15mm;
+    }
     body {
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
       background: #ffffff;
       color: #0f172a;
-      padding: 24px;
+      padding: 0;
       line-height: 1.5;
       font-size: 13px;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
     .slip-box {
-      max-width: 800px;
+      width: 100%;
+      max-width: 210mm;
       margin: 0 auto;
+      padding: 15mm;
+      background: #ffffff;
     }
     table {
       width: 100%;
@@ -96,7 +103,7 @@ export const PrintExpenseSlipModal: React.FC<PrintExpenseSlipModalProps> = ({
     .text-blue { color: #2563eb; }
     @media print {
       body { padding: 0; }
-      @page { margin: 1cm; size: A4 portrait; }
+      .slip-box { padding: 0; max-width: none; }
     }
   </style>
 </head>
@@ -170,7 +177,7 @@ export const PrintExpenseSlipModal: React.FC<PrintExpenseSlipModalProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${expense.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-statement-slip.html`;
+      a.download = `${expense.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-a4-statement-slip.html`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -194,45 +201,93 @@ export const PrintExpenseSlipModal: React.FC<PrintExpenseSlipModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      {/* Container - on screen it is a modal, on print it fills the printed page */}
-      <div className="bg-white rounded-3xl w-full max-w-3xl my-auto shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[92vh]">
-        {/* On-Screen Modal Header (hidden during print) */}
-        <div className="no-print flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/70">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Printer className="w-4 h-4" />
+    <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col h-screen w-screen overflow-hidden animate-in fade-in duration-150">
+      {/* Dedicated Top Action Bar (hidden during print) */}
+      <div className="no-print bg-slate-950 text-white px-4 sm:px-6 py-3 border-b border-slate-800 flex items-center justify-between gap-3 shrink-0 shadow-lg z-10">
+        {/* Left: Back / Close & Title */}
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[50px] bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer shrink-0"
+            title="Exit full dedicated print screen"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Back</span>
+          </button>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-white truncate">
+                {expense.name} — Statement Slip
+              </h2>
+              <span className="hidden sm:inline-flex px-2 py-0.5 rounded-[50px] bg-blue-500/20 text-blue-400 text-[10px] font-bold border border-blue-500/30">
+                A4 Paper Standard
+              </span>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">Expense Statement & Settlement Slip</h3>
-              <p className="text-[11px] text-slate-500">Preview and print or save as PDF</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition active:scale-95 cursor-pointer"
-              title="Print now"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-full transition cursor-pointer"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <p className="text-[11px] text-slate-400 hidden md:block">
+              Full dedicated print screen • Standard A4 portrait layout (210mm × 297mm)
+            </p>
           </div>
         </div>
 
-        {/* Printable Slip Content */}
+        {/* Right: Actions (Download & Print on A4) */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={handleDownloadSlip}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[50px] bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer active:scale-95 border border-slate-700/80"
+            title="Download slip as HTML file for offline printing"
+          >
+            {downloadSuccess ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-400">Downloaded</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5 text-blue-400" />
+                <span>Download Slip</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenInNewTab}
+            className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-[50px] bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer active:scale-95 border border-slate-700/80"
+            title="Open in new window"
+          >
+            <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+            <span>New Window</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-4 sm:px-5 py-1.5 rounded-[50px] bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition cursor-pointer active:scale-95"
+            title="Print directly on A4 paper"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Print on A4 Paper</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition cursor-pointer ml-1"
+            title="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Dedicated Workspace / Paper Canvas */}
+      <div className="flex-1 overflow-y-auto bg-slate-800/90 py-6 sm:py-10 px-2 sm:px-6 flex justify-center items-start print:bg-white print:p-0 print:overflow-visible">
+        {/* Printable A4 Paper Sheet Preview Container */}
         <div
           ref={printAreaRef}
           id="printable-slip"
-          className="p-6 sm:p-8 overflow-y-auto print:p-0 print:overflow-visible text-slate-900 font-sans"
+          className="w-full max-w-[210mm] min-h-[297mm] bg-white text-slate-900 shadow-2xl rounded-sm p-6 sm:p-12 border border-slate-200/90 font-sans print:max-w-none print:w-full print:min-h-0 print:border-none print:shadow-none print:p-0 print:m-0"
         >
           {/* Slip Header */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-5 border-b-2 border-slate-800">
@@ -385,52 +440,36 @@ export const PrintExpenseSlipModal: React.FC<PrintExpenseSlipModalProps> = ({
             </p>
           </div>
         </div>
+      </div>
 
-        {/* Modal Bottom Action Controls (hidden during print) */}
-        <div className="no-print p-4 border-t border-slate-100 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleDownloadSlip}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[50px] border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95 cursor-pointer"
-              title="Download slip as HTML file"
-            >
-              {downloadSuccess ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-700">Downloaded!</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Download Slip</span>
-                </>
-              )}
-            </button>
-            <button
-              onClick={handleOpenInNewTab}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-[50px] border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition active:scale-95 cursor-pointer"
-              title="Open slip in new window to print"
-            >
-              <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
-              <span>Open in Window</span>
-            </button>
-          </div>
+      {/* Subtle Dedicated Full-Screen Bottom Status Bar (hidden during print) */}
+      <div className="no-print bg-slate-950/90 text-slate-400 border-t border-slate-800/80 px-4 py-2.5 flex items-center justify-between text-xs shrink-0">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 font-medium text-slate-300">
+            <FileText className="w-3.5 h-3.5 text-blue-400" />
+            <span>Standard A4 Paper Dimensions: 210mm × 297mm</span>
+          </span>
+          <span className="hidden sm:inline text-slate-500">•</span>
+          <span className="hidden sm:inline text-slate-400">Total Entries: {transactions.length}</span>
+        </div>
 
-          <div className="flex items-center gap-2.5 ml-auto">
-            <button
-              onClick={onClose}
-              className="px-5 py-2 rounded-[50px] border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
-            >
-              Close
-            </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 px-5 py-2 rounded-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition active:scale-95 cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print</span>
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleDownloadSlip}
+            className="flex items-center gap-1 text-slate-300 hover:text-white transition px-2.5 py-1 rounded cursor-pointer"
+          >
+            <Download className="w-3 h-3 text-blue-400" />
+            <span>Download</span>
+          </button>
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-[50px] bg-blue-600 hover:bg-blue-500 text-white font-bold transition cursor-pointer"
+          >
+            <Printer className="w-3 h-3" />
+            <span>Print A4</span>
+          </button>
         </div>
       </div>
     </div>

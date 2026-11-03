@@ -6,6 +6,7 @@ import { TransactionItem } from '../components/TransactionItem.tsx';
 import { EditTransactionModal } from '../components/EditTransactionModal.tsx';
 import { ConfirmModal } from '../components/ConfirmModal.tsx';
 import { ReceiptPreviewModal } from '../components/ReceiptPreviewModal.tsx';
+import { PrintExpenseSlipModal } from '../components/PrintExpenseSlipModal.tsx';
 import {
   Search,
   Filter,
@@ -15,8 +16,11 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronUp,
+  Plus,
+  Printer,
 } from 'lucide-react';
 import { Transaction } from '../types/index.ts';
+import { AddTransactionDrawer } from '../components/AddTransactionDrawer.tsx';
 
 export const TransactionsView: React.FC = () => {
   const { transactions, expenses, deleteTransaction } = useExpense();
@@ -31,7 +35,12 @@ export const TransactionsView: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  // Accordion state: only one transaction expanded at a time
+  const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
+
   // Modals state
+  const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
+  const [isPrintSlipOpen, setIsPrintSlipOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -79,17 +88,17 @@ export const TransactionsView: React.FC = () => {
 
   return (
     <div className="space-y-6 sm:space-y-7 animate-in fade-in duration-150">
-      {/* Curved Royal Blue Banner with Name and 3 Amounts in ONE Horizontal Line */}
-      <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-700 text-white rounded-3xl p-4 sm:p-5 shadow-sm shadow-blue-500/15 overflow-hidden">
+      {/* Transaction Top Card Details - Clean White Background Theme */}
+      <div className="bg-white text-slate-800 rounded-3xl p-4 sm:p-5 shadow-xs border border-slate-200/90 overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Left: Title / Expense Name */}
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight text-white truncate">
+            <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight text-slate-900 truncate">
               {selectedExpenseId !== 'ALL' && expenseMap.get(selectedExpenseId)
                 ? expenseMap.get(selectedExpenseId)
                 : 'All Transactions Ledger'}
             </h1>
-            <p className="text-xs text-blue-100 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5">
               {filteredList.length} total entries recorded
             </p>
           </div>
@@ -98,10 +107,10 @@ export const TransactionsView: React.FC = () => {
           <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 overflow-x-auto no-scrollbar shrink-0 pt-1 md:pt-0">
             {/* Total In (Credits) */}
             <div className="text-left sm:text-right shrink-0">
-              <div className="text-[10px] sm:text-xs font-semibold text-blue-100 uppercase tracking-wider">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Total ({creditLabel})
               </div>
-              <div className="text-sm sm:text-lg font-black text-emerald-200">
+              <div className="text-sm sm:text-lg font-black text-emerald-600">
                 +{formatCurrency(
                   filteredList.filter((t) => t.type === 'CREDIT').reduce((s, t) => s + t.amount, 0),
                   currencySymbol
@@ -110,14 +119,14 @@ export const TransactionsView: React.FC = () => {
             </div>
 
             {/* Thin Divider */}
-            <div className="w-[1px] h-7 bg-white/25 shrink-0" />
+            <div className="w-[1px] h-7 bg-slate-200 shrink-0" />
 
             {/* Expended (Debits) */}
             <div className="text-left sm:text-right shrink-0">
-              <div className="text-[10px] sm:text-xs font-semibold text-blue-100 uppercase tracking-wider">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Expended ({debitLabel})
               </div>
-              <div className="text-sm sm:text-lg font-black text-rose-200">
+              <div className="text-sm sm:text-lg font-black text-rose-600">
                 −{formatCurrency(
                   filteredList.filter((t) => t.type === 'DEBIT').reduce((s, t) => s + t.amount, 0),
                   currencySymbol
@@ -126,11 +135,11 @@ export const TransactionsView: React.FC = () => {
             </div>
 
             {/* Thin Divider */}
-            <div className="w-[1px] h-7 bg-white/25 shrink-0" />
+            <div className="w-[1px] h-7 bg-slate-200 shrink-0" />
 
             {/* Remaining / Net */}
             <div className="text-left sm:text-right shrink-0">
-              <div className="text-[10px] sm:text-xs font-semibold text-blue-100 uppercase tracking-wider">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Net Remaining
               </div>
               {(() => {
@@ -138,7 +147,7 @@ export const TransactionsView: React.FC = () => {
                 const totalOut = filteredList.filter((t) => t.type === 'DEBIT').reduce((s, t) => s + t.amount, 0);
                 const net = totalIn - totalOut;
                 return (
-                  <div className={`text-sm sm:text-lg font-black ${net >= 0 ? 'text-white' : 'text-rose-200'}`}>
+                  <div className={`text-sm sm:text-lg font-black ${net >= 0 ? 'text-blue-700' : 'text-rose-600'}`}>
                     {net < 0 ? '−' : ''}{formatCurrency(Math.abs(net), currencySymbol)}
                   </div>
                 );
@@ -324,6 +333,19 @@ export const TransactionsView: React.FC = () => {
             <span>Transactions List</span>
             <span className="text-xs font-medium text-slate-400">({filteredList.length})</span>
           </h2>
+
+          {/* Dedicated A4 Print Statement Slip Button */}
+          {filteredList.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsPrintSlipOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[50px] bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition border border-slate-200 cursor-pointer active:scale-95 shadow-2xs"
+              title="Print or export statement slip on A4 paper"
+            >
+              <Printer className="w-3.5 h-3.5 text-blue-600" />
+              <span>Print Slip (A4)</span>
+            </button>
+          )}
         </div>
 
         {filteredList.length === 0 ? (
@@ -337,14 +359,17 @@ export const TransactionsView: React.FC = () => {
             </p>
           </div>
         ) : (
-          /* Transaction list with clear spacing/gap between individual transaction cards */
+          /* Transaction list with single accordion expansion: one expands, previously open automatically collapses */
           <div className="space-y-3">
             {filteredList.map((tx) => (
               <TransactionItem
                 key={tx.id}
                 transaction={tx}
                 expenseName={expenseMap.get(tx.expenseId)}
+                isExpanded={expandedTxId === tx.id}
+                onToggleExpand={() => setExpandedTxId(expandedTxId === tx.id ? null : tx.id)}
                 onEdit={(t) => setEditingTransaction(t)}
+                onDelete={(t) => setTransactionToDelete(t)}
                 onViewReceipt={(url) => setPreviewImageUrl(url)}
               />
             ))}
@@ -359,10 +384,74 @@ export const TransactionsView: React.FC = () => {
         onClose={() => setEditingTransaction(null)}
       />
 
+      {/* Delete Transaction Confirm Dialog */}
+      <ConfirmModal
+        isOpen={!!transactionToDelete}
+        title="Delete Transaction"
+        message={`Are you sure you want to permanently delete "${transactionToDelete?.title}" (${formatCurrency(transactionToDelete?.amount || 0, currencySymbol)})?`}
+        confirmLabel="Delete Entry"
+        confirmVariant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setTransactionToDelete(null)}
+      />
+
       {/* Receipt Zoom Preview */}
       <ReceiptPreviewModal
         imageUrl={previewImageUrl}
         onClose={() => setPreviewImageUrl(null)}
+      />
+
+      {/* Dedicated Full Screen A4 Print & Export Slip */}
+      <PrintExpenseSlipModal
+        isOpen={isPrintSlipOpen}
+        onClose={() => setIsPrintSlipOpen(false)}
+        expense={
+          (selectedExpenseId !== 'ALL'
+            ? expenses.find((e) => e.id === selectedExpenseId)
+            : null) || {
+            id: 'all',
+            userId: user?.id || 'user',
+            name: selectedExpenseId !== 'ALL' ? 'Filtered Transactions Statement' : 'All Transactions Statement',
+            initialAmount: filteredList.reduce((s, t) => s + t.amount, 0),
+            color: '#2563eb',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+        }
+        transactions={filteredList}
+        summary={(() => {
+          const totalIn = filteredList.filter((t) => t.type === 'CREDIT').reduce((s, t) => s + t.amount, 0);
+          const totalOut = filteredList.filter((t) => t.type === 'DEBIT').reduce((s, t) => s + t.amount, 0);
+          const totalBudget = totalIn > 0 ? totalIn : totalOut;
+          return {
+            totalAmount: totalBudget,
+            expendedAmount: totalOut,
+            remainingAmount: totalIn - totalOut,
+            percentageUsed: totalBudget > 0 ? (totalOut / totalBudget) * 100 : 0,
+            isOverspent: totalOut > totalIn,
+          };
+        })()}
+      />
+
+      {/* Floating Right Bottom (+) Action Button to Enter Transaction Details */}
+      <div className="fixed bottom-20 sm:bottom-8 right-5 sm:right-8 z-40">
+        <button
+          type="button"
+          onClick={() => setIsAddDrawerOpen(true)}
+          className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-xl shadow-blue-600/35 flex items-center justify-center transition-all cursor-pointer group"
+          aria-label="Add transaction entry"
+          title="Add transaction"
+        >
+          <Plus className="w-7 h-7 stroke-[2.5] group-hover:rotate-90 transition-transform duration-200" />
+        </button>
+      </div>
+
+      {/* 70% Half Dedicated Screen Drawer to Enter Details */}
+      <AddTransactionDrawer
+        isOpen={isAddDrawerOpen}
+        onClose={() => setIsAddDrawerOpen(false)}
+        defaultExpenseId={selectedExpenseId !== 'ALL' ? selectedExpenseId : undefined}
       />
     </div>
   );
