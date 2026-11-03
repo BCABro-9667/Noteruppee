@@ -219,13 +219,9 @@ export const PrintExpenseSlipModal: React.FC<PrintExpenseSlipModalProps> = ({
               <h2 className="text-sm font-bold text-white truncate">
                 {expense.name} — Statement Slip
               </h2>
-              <span className="hidden sm:inline-flex px-2 py-0.5 rounded-[50px] bg-blue-500/20 text-blue-400 text-[10px] font-bold border border-blue-500/30">
-                A4 Paper Standard
-              </span>
+
             </div>
-            <p className="text-[11px] text-slate-400 hidden md:block">
-              Full dedicated print screen • Standard A4 portrait layout (210mm × 297mm)
-            </p>
+           
           </div>
         </div>
 
@@ -267,7 +263,7 @@ export const PrintExpenseSlipModal: React.FC<PrintExpenseSlipModalProps> = ({
             title="Print directly on A4 paper"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Print on A4 Paper</span>
+            <span>Print</span>
           </button>
 
           <button
@@ -447,10 +443,7 @@ export const PrintExpenseSlipModal: React.FC<PrintExpenseSlipModalProps> = ({
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5 font-medium text-slate-300">
             <FileText className="w-3.5 h-3.5 text-blue-400" />
-            <span>Standard A4 Paper Dimensions: 210mm × 297mm</span>
           </span>
-          <span className="hidden sm:inline text-slate-500">•</span>
-          <span className="hidden sm:inline text-slate-400">Total Entries: {transactions.length}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -468,7 +461,7 @@ export const PrintExpenseSlipModal: React.FC<PrintExpenseSlipModalProps> = ({
             className="flex items-center gap-1.5 px-3 py-1 rounded-[50px] bg-blue-600 hover:bg-blue-500 text-white font-bold transition cursor-pointer"
           >
             <Printer className="w-3 h-3" />
-            <span>Print A4</span>
+            <span>Print</span>
           </button>
         </div>
       </div>
