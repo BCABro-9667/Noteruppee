@@ -11,7 +11,6 @@ interface AuthContextType {
   creditLabel: string;
   login: (credentials: { email: string; password: string }) => Promise<void>;
   register: (payload: { name: string; email: string; password: string; phone?: string; location?: string; currencySymbol?: string }) => Promise<void>;
-  demoLogin: () => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: { name?: string; phone?: string; location?: string; avatarUrl?: string; settings?: Partial<UserSettings> }) => Promise<void>;
   changePassword: (data: { oldPassword: string; newPassword: string; confirmPassword: string }) => Promise<{ success: boolean; message: string }>;
@@ -72,11 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(res.user);
   };
 
-  const demoLogin = async () => {
-    const res = await api.demoLogin();
-    setUser(res.user);
-  };
-
   const logout = async () => {
     await api.logout();
     setUser(null);
@@ -106,7 +100,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         creditLabel,
         login,
         register,
-        demoLogin,
         logout,
         updateProfile,
         changePassword,

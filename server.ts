@@ -1,9 +1,10 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
-import fs from 'fs';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
+import { MongoClient, Db, Collection } from 'mongodb';
+import { v2 as cloudinary } from 'cloudinary';
 
 dotenv.config();
 
@@ -11,17 +12,18 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 // Body parser
-app.use(express.json({ limit: '20mb' }));
-app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
-// Setup data directory and persistence file
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
+// Cloudinary Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dsugarjot',
+  api_key: process.env.CLOUDINARY_API_KEY || '699116238718778',
+  api_secret: process.env.CLOUDINARY_API_SECRET || '-9ieAMucNmKIzgK-11c_6tVhqgY',
+  secure: true,
+});
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
+// Database Interfaces
 interface StoredUser {
   id: string;
   name: string;
@@ -65,219 +67,93 @@ interface StoredTransaction {
   createdAt: string;
 }
 
-interface DatabaseSchema {
-  users: StoredUser[];
-  sessions: { token: string; userId: string; createdAt: string }[];
-  expenses: StoredExpense[];
-  transactions: StoredTransaction[];
+interface StoredSession {
+  token: string;
+  userId: string;
+  createdAt: string;
 }
+
+// MongoDB Setup
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  'mongodb+srv://Avdhesh1:ya4XYnQUEtYhv5kr@cluster0.0uojesi.mongodb.net/Noteruppee';
+
+const mongoClient = new MongoClient(MONGO_URI, {
+  serverSelectionTimeoutMS: 10000,
+  maxPoolSize: 20,
+});
+
+let db: Db | null = null;
+let usersCol: Collection<StoredUser>;
+let sessionsCol: Collection<StoredSession>;
+let expensesCol: Collection<StoredExpense>;
+let transactionsCol: Collection<StoredTransaction>;
+
+// In-memory fallback if MongoDB connection drops temporarily
+const fallbackDb = {
+  users: [] as StoredUser[],
+  sessions: [] as StoredSession[],
+  expenses: [] as StoredExpense[],
+  transactions: [] as StoredTransaction[],
+};
 
 function hashPassword(password: string, salt: string): string {
   return crypto.scryptSync(password, salt, 64).toString('hex');
 }
 
-function initDatabase(): DatabaseSchema {
-  if (fs.existsSync(DB_FILE)) {
+async function initMongoConnection() {
+  try {
+    await mongoClient.connect();
+    db = mongoClient.db();
+    usersCol = db.collection<StoredUser>('users');
+    sessionsCol = db.collection<StoredSession>('sessions');
+    expensesCol = db.collection<StoredExpense>('expenses');
+    transactionsCol = db.collection<StoredTransaction>('transactions');
+
+    // Create unique and indexing constraints
     try {
-      const content = fs.readFileSync(DB_FILE, 'utf-8');
-      return JSON.parse(content);
-    } catch (e) {
-      console.error('Error reading db.json, creating fresh store', e);
+      await usersCol.createIndex({ email: 1 }, { unique: true });
+      await sessionsCol.createIndex({ token: 1 }, { unique: true });
+      await expensesCol.createIndex({ userId: 1 });
+      await transactionsCol.createIndex({ userId: 1 });
+      await transactionsCol.createIndex({ expenseId: 1 });
+    } catch (idxErr) {
+      console.warn('Index verification info:', idxErr);
     }
+
+    console.log('✅ Successfully connected to MongoDB database "Noteruppee"!');
+  } catch (err: any) {
+    console.error('⚠️ Could not connect to MongoDB cluster, will retry on request:', err.message);
   }
-
-  // Seed default demo user and rich expense data for instant first-run experience
-  const demoSalt = crypto.randomBytes(16).toString('hex');
-  const demoUser: StoredUser = {
-    id: 'user-demo-1',
-    name: 'Avdesh Rajput',
-    email: 'demo@rupeetrack.in',
-    phone: '+91 98765 43210',
-    location: 'Bengaluru, India',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
-    passwordHash: hashPassword('password123', demoSalt),
-    salt: demoSalt,
-    settings: {
-      debitLabel: 'Debit',
-      creditLabel: 'Credit',
-      currencySymbol: '₹',
-    },
-    createdAt: new Date().toISOString(),
-  };
-
-  const initialExpenses: StoredExpense[] = [
-    {
-      id: 'exp-1',
-      userId: demoUser.id,
-      name: 'Monthly Groceries & Kitchen',
-      initialAmount: 18000,
-      category: 'Food & Supplies',
-      color: '#2563EB',
-      createdAt: new Date(Date.now() - 15 * 86400000).toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'exp-2',
-      userId: demoUser.id,
-      name: 'Goa Weekend Trip',
-      initialAmount: 35000,
-      category: 'Travel & Vacation',
-      color: '#0D9488',
-      createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'exp-3',
-      userId: demoUser.id,
-      name: 'Office Project Budget',
-      initialAmount: 50000,
-      category: 'Business & Freelance',
-      color: '#7C3AED',
-      createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'exp-4',
-      userId: demoUser.id,
-      name: 'Home Renovation',
-      initialAmount: 25000,
-      category: 'Household',
-      color: '#EA580C',
-      createdAt: new Date(Date.now() - 20 * 86400000).toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ];
-
-  const initialTransactions: StoredTransaction[] = [
-    {
-      id: 'tx-1',
-      expenseId: 'exp-1',
-      userId: demoUser.id,
-      title: 'Organic Vegetables & Dairy',
-      amount: 1450,
-      type: 'DEBIT',
-      date: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0],
-      time: '10:30',
-      notes: 'Weekly fresh fruits and organic farm milk',
-      paymentMethod: 'UPI',
-      createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    },
-    {
-      id: 'tx-2',
-      expenseId: 'exp-1',
-      userId: demoUser.id,
-      title: 'Monthly Supermarket Supplies',
-      amount: 4200,
-      type: 'DEBIT',
-      date: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0],
-      time: '18:15',
-      notes: 'Rice, oil, pulses and cleaning products',
-      paymentMethod: 'Card',
-      createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    },
-    {
-      id: 'tx-3',
-      expenseId: 'exp-1',
-      userId: demoUser.id,
-      title: 'Cashback Refund from Store',
-      amount: 350,
-      type: 'CREDIT',
-      date: new Date(Date.now() - 4 * 86400000).toISOString().split('T')[0],
-      time: '14:00',
-      notes: 'Promo discount refunded to wallet',
-      paymentMethod: 'UPI',
-      createdAt: new Date(Date.now() - 4 * 86400000).toISOString(),
-    },
-    {
-      id: 'tx-4',
-      expenseId: 'exp-2',
-      userId: demoUser.id,
-      title: 'Flight Tickets Bangalore to Goa',
-      amount: 11200,
-      type: 'DEBIT',
-      date: new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0],
-      time: '11:45',
-      notes: 'Indigo return flights for 2',
-      paymentMethod: 'Card',
-      createdAt: new Date(Date.now() - 6 * 86400000).toISOString(),
-    },
-    {
-      id: 'tx-5',
-      expenseId: 'exp-2',
-      userId: demoUser.id,
-      title: 'Beach Resort Advance',
-      amount: 8500,
-      type: 'DEBIT',
-      date: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0],
-      time: '15:20',
-      notes: 'Sea view room booking confirmation',
-      paymentMethod: 'Net Banking',
-      createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    },
-    {
-      id: 'tx-6',
-      expenseId: 'exp-2',
-      userId: demoUser.id,
-      title: 'Friend Split Share Received',
-      amount: 6000,
-      type: 'CREDIT',
-      date: new Date(Date.now() - 3 * 86400000).toISOString().split('T')[0],
-      time: '19:10',
-      notes: 'Rohan paid his flight share via GPay',
-      paymentMethod: 'UPI',
-      createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    },
-    {
-      id: 'tx-7',
-      expenseId: 'exp-3',
-      userId: demoUser.id,
-      title: 'Client Advance Milestone 1',
-      amount: 25000,
-      type: 'CREDIT',
-      date: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0],
-      time: '11:00',
-      notes: 'Wire transfer for branding and frontend phase',
-      paymentMethod: 'Net Banking',
-      createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    },
-    {
-      id: 'tx-8',
-      expenseId: 'exp-3',
-      userId: demoUser.id,
-      title: 'Figma and Cloud Server Subscriptions',
-      amount: 3200,
-      type: 'DEBIT',
-      date: new Date(Date.now() - 1 * 86400000).toISOString().split('T')[0],
-      time: '16:40',
-      notes: 'Annual design tools renewal',
-      paymentMethod: 'Card',
-      createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
-    },
-  ];
-
-  const db: DatabaseSchema = {
-    users: [demoUser],
-    sessions: [],
-    expenses: initialExpenses,
-    transactions: initialTransactions,
-  };
-
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
-  return db;
 }
 
-let db = initDatabase();
+// Helper to check MongoDB readiness or attempt reconnection
+async function getCollections() {
+  if (db && usersCol && sessionsCol && expensesCol && transactionsCol) {
+    return { usersCol, sessionsCol, expensesCol, transactionsCol, isMongo: true };
+  }
 
-function saveDatabase() {
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
-  } catch (err) {
-    console.error('Failed to persist db.json:', err);
+    await mongoClient.connect();
+    db = mongoClient.db();
+    usersCol = db.collection<StoredUser>('users');
+    sessionsCol = db.collection<StoredSession>('sessions');
+    expensesCol = db.collection<StoredExpense>('expenses');
+    transactionsCol = db.collection<StoredTransaction>('transactions');
+    return { usersCol, sessionsCol, expensesCol, transactionsCol, isMongo: true };
+  } catch {
+    return {
+      usersCol: null as any,
+      sessionsCol: null as any,
+      expensesCol: null as any,
+      transactionsCol: null as any,
+      isMongo: false,
+    };
   }
 }
 
 // Authentication Middleware
-function authenticateToken(req: Request, res: Response, next: NextFunction) {
+async function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
@@ -285,108 +161,168 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
     return res.status(401).json({ error: 'Access token required' });
   }
 
-  const session = db.sessions.find((s) => s.token === token);
-  if (!session) {
-    return res.status(401).json({ error: 'Invalid or expired session' });
-  }
+  try {
+    const { sessionsCol: sCol, usersCol: uCol, isMongo } = await getCollections();
 
-  const user = db.users.find((u) => u.id === session.userId);
-  if (!user) {
-    return res.status(401).json({ error: 'User not found' });
-  }
+    let userId: string | null = null;
+    if (isMongo) {
+      const session = await sCol.findOne({ token });
+      if (session) userId = session.userId;
+    } else {
+      const session = fallbackDb.sessions.find((s) => s.token === token);
+      if (session) userId = session.userId;
+    }
 
-  (req as any).user = user;
-  next();
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid or expired session. Please sign in again.' });
+    }
+
+    let user: StoredUser | null = null;
+    if (isMongo) {
+      user = await uCol.findOne({ id: userId });
+    } else {
+      user = fallbackDb.users.find((u) => u.id === userId) || null;
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: 'User account not found' });
+    }
+
+    (req as any).user = user;
+    next();
+  } catch (err: any) {
+    console.error('Auth middleware error:', err);
+    return res.status(500).json({ error: 'Internal authentication error' });
+  }
 }
 
 // ==================== AUTH ROUTES ====================
 
-// Register
-app.post('/api/auth/register', (req: Request, res: Response) => {
+// Register a real account in MongoDB
+app.post('/api/auth/register', async (req: Request, res: Response) => {
   const { name, email, password, phone, location, currencySymbol } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Name, email, and password are required' });
   }
 
-  const normalizedEmail = email.toLowerCase().trim();
-  const existing = db.users.find((u) => u.email.toLowerCase() === normalizedEmail);
-  if (existing) {
-    return res.status(400).json({ error: 'An account with this email already exists' });
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
-  const salt = crypto.randomBytes(16).toString('hex');
-  const passwordHash = hashPassword(password, salt);
-  const newUser: StoredUser = {
-    id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-    name: name.trim(),
-    email: normalizedEmail,
-    phone: phone?.trim() || '',
-    location: location?.trim() || '',
-    avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name.trim())}&backgroundColor=2563eb,1d4ed8`,
-    passwordHash,
-    salt,
-    settings: {
-      debitLabel: 'Debit',
-      creditLabel: 'Credit',
-      currencySymbol: currencySymbol || '₹',
-    },
-    createdAt: new Date().toISOString(),
-  };
+  const normalizedEmail = email.toLowerCase().trim();
 
-  db.users.push(newUser);
+  try {
+    const { usersCol: uCol, sessionsCol: sCol, isMongo } = await getCollections();
 
-  // Generate session token
-  const token = crypto.randomBytes(32).toString('hex');
-  db.sessions.push({ token, userId: newUser.id, createdAt: new Date().toISOString() });
-  saveDatabase();
+    // Check if email already exists
+    let existingUser: StoredUser | null = null;
+    if (isMongo) {
+      existingUser = await uCol.findOne({ email: normalizedEmail });
+    } else {
+      existingUser = fallbackDb.users.find((u) => u.email.toLowerCase() === normalizedEmail) || null;
+    }
 
-  const { passwordHash: _, salt: __, ...userProfile } = newUser;
-  res.status(201).json({ token, user: userProfile });
+    if (existingUser) {
+      return res.status(400).json({ error: 'An account with this email already exists. Please sign in.' });
+    }
+
+    const salt = crypto.randomBytes(16).toString('hex');
+    const passwordHash = hashPassword(password, salt);
+    const newUser: StoredUser = {
+      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      name: name.trim(),
+      email: normalizedEmail,
+      phone: phone?.trim() || '',
+      location: location?.trim() || '',
+      avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name.trim())}&backgroundColor=2563eb,1d4ed8`,
+      passwordHash,
+      salt,
+      settings: {
+        debitLabel: 'Debit',
+        creditLabel: 'Credit',
+        currencySymbol: currencySymbol || '₹',
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const sessionDoc: StoredSession = {
+      token,
+      userId: newUser.id,
+      createdAt: new Date().toISOString(),
+    };
+
+    if (isMongo) {
+      await uCol.insertOne(newUser as any);
+      await sCol.insertOne(sessionDoc as any);
+    } else {
+      fallbackDb.users.push(newUser);
+      fallbackDb.sessions.push(sessionDoc);
+    }
+
+    const { passwordHash: _, salt: __, ...userProfile } = newUser;
+    res.status(201).json({ token, user: userProfile });
+  } catch (err: any) {
+    console.error('Registration error:', err);
+    res.status(500).json({ error: 'Failed to create account. Please try again.' });
+  }
 });
 
-// Login
-app.post('/api/auth/login', (req: Request, res: Response) => {
+// Login real account from MongoDB
+app.post('/api/auth/login', async (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
   const normalizedEmail = email.toLowerCase().trim();
-  const user = db.users.find((u) => u.email.toLowerCase() === normalizedEmail);
-  if (!user) {
-    return res.status(401).json({ error: 'Invalid email or password' });
+
+  try {
+    const { usersCol: uCol, sessionsCol: sCol, isMongo } = await getCollections();
+
+    let user: StoredUser | null = null;
+    if (isMongo) {
+      user = await uCol.findOne({ email: normalizedEmail });
+    } else {
+      user = fallbackDb.users.find((u) => u.email.toLowerCase() === normalizedEmail) || null;
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const hash = hashPassword(password, user.salt);
+    if (hash !== user.passwordHash) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const sessionDoc: StoredSession = {
+      token,
+      userId: user.id,
+      createdAt: new Date().toISOString(),
+    };
+
+    if (isMongo) {
+      await sCol.insertOne(sessionDoc as any);
+    } else {
+      fallbackDb.sessions.push(sessionDoc);
+    }
+
+    const { passwordHash: _, salt: __, ...userProfile } = user;
+    res.json({ token, user: userProfile });
+  } catch (err: any) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Login service encountered an issue' });
   }
-
-  const hash = hashPassword(password, user.salt);
-  if (hash !== user.passwordHash) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-
-  const token = crypto.randomBytes(32).toString('hex');
-  db.sessions.push({ token, userId: user.id, createdAt: new Date().toISOString() });
-  saveDatabase();
-
-  const { passwordHash: _, salt: __, ...userProfile } = user;
-  res.json({ token, user: userProfile });
 });
 
-// Demo Login (One-click Instant Access)
-app.post('/api/auth/demo', (_req: Request, res: Response) => {
-  let demoUser = db.users.find((u) => u.id === 'user-demo-1');
-  if (!demoUser) {
-    demoUser = db.users[0];
-  }
-  if (!demoUser) {
-    return res.status(500).json({ error: 'No demo user available' });
-  }
-
-  const token = crypto.randomBytes(32).toString('hex');
-  db.sessions.push({ token, userId: demoUser.id, createdAt: new Date().toISOString() });
-  saveDatabase();
-
-  const { passwordHash: _, salt: __, ...userProfile } = demoUser;
-  res.json({ token, user: userProfile });
+// Demo Login endpoint - Disabled per user request
+app.all('/api/auth/demo', (_req: Request, res: Response) => {
+  res.status(400).json({
+    error: 'Demo login has been removed. Please create an account or sign in with your email and password.',
+  });
 });
 
 // Current user profile
@@ -397,45 +333,68 @@ app.get('/api/auth/me', authenticateToken, (req: Request, res: Response) => {
 });
 
 // Logout
-app.post('/api/auth/logout', (req: Request, res: Response) => {
+app.post('/api/auth/logout', async (req: Request, res: Response) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (token) {
-    db.sessions = db.sessions.filter((s) => s.token !== token);
-    saveDatabase();
+    try {
+      const { sessionsCol: sCol, isMongo } = await getCollections();
+      if (isMongo) {
+        await sCol.deleteOne({ token });
+      } else {
+        fallbackDb.sessions = fallbackDb.sessions.filter((s) => s.token !== token);
+      }
+    } catch (err) {
+      console.warn('Logout cleanup warning:', err);
+    }
   }
   res.json({ success: true });
 });
 
-// Update Profile & Settings
-app.put('/api/auth/profile', authenticateToken, (req: Request, res: Response) => {
+// Update Profile & Settings in MongoDB
+app.put('/api/auth/profile', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
   const { name, phone, location, avatarUrl, settings } = req.body;
 
-  if (name && name.trim()) user.name = name.trim();
-  if (phone !== undefined) user.phone = phone.trim();
-  if (location !== undefined) user.location = location.trim();
-  if (avatarUrl) user.avatarUrl = avatarUrl;
+  const updates: Partial<StoredUser> = {};
+  if (name && name.trim()) updates.name = name.trim();
+  if (phone !== undefined) updates.phone = phone.trim();
+  if (location !== undefined) updates.location = location.trim();
+  if (avatarUrl) updates.avatarUrl = avatarUrl;
 
+  const newSettings = { ...user.settings };
   if (settings) {
     if (['Debit', 'Take', 'Liya'].includes(settings.debitLabel)) {
-      user.settings.debitLabel = settings.debitLabel;
+      newSettings.debitLabel = settings.debitLabel;
     }
     if (['Credit', 'Give', 'Diya'].includes(settings.creditLabel)) {
-      user.settings.creditLabel = settings.creditLabel;
+      newSettings.creditLabel = settings.creditLabel;
     }
     if (settings.currencySymbol) {
-      user.settings.currencySymbol = settings.currencySymbol;
+      newSettings.currencySymbol = settings.currencySymbol;
     }
+    updates.settings = newSettings;
   }
 
-  saveDatabase();
-  const { passwordHash: _, salt: __, ...userProfile } = user;
-  res.json({ user: userProfile });
+  try {
+    const { usersCol: uCol, isMongo } = await getCollections();
+    if (isMongo) {
+      await uCol.updateOne({ id: user.id }, { $set: updates });
+    } else {
+      Object.assign(user, updates);
+    }
+
+    const updatedUser = { ...user, ...updates };
+    const { passwordHash: _, salt: __, ...userProfile } = updatedUser;
+    res.json({ user: userProfile });
+  } catch (err: any) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
 });
 
-// Change Password
-app.post('/api/auth/change-password', authenticateToken, (req: Request, res: Response) => {
+// Change Password in MongoDB
+app.post('/api/auth/change-password', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
@@ -456,23 +415,45 @@ app.post('/api/auth/change-password', authenticateToken, (req: Request, res: Res
     return res.status(400).json({ error: 'Incorrect old password' });
   }
 
-  user.passwordHash = hashPassword(newPassword, user.salt);
-  saveDatabase();
+  const newHash = hashPassword(newPassword, user.salt);
 
-  res.json({ success: true, message: 'Password updated successfully' });
+  try {
+    const { usersCol: uCol, isMongo } = await getCollections();
+    if (isMongo) {
+      await uCol.updateOne({ id: user.id }, { $set: { passwordHash: newHash } });
+    } else {
+      user.passwordHash = newHash;
+    }
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (err: any) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Failed to update password' });
+  }
 });
 
-// ==================== EXPENSES CRUD ====================
+// ==================== EXPENSES CRUD (MongoDB) ====================
 
 // Get all expenses for current user
-app.get('/api/expenses', authenticateToken, (req: Request, res: Response) => {
+app.get('/api/expenses', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
-  const userExpenses = db.expenses.filter((e) => e.userId === user.id);
-  res.json({ expenses: userExpenses });
+
+  try {
+    const { expensesCol: eCol, isMongo } = await getCollections();
+    let userExpenses: StoredExpense[] = [];
+    if (isMongo) {
+      userExpenses = await eCol.find({ userId: user.id }).sort({ createdAt: -1 }).toArray();
+    } else {
+      userExpenses = fallbackDb.expenses.filter((e) => e.userId === user.id);
+    }
+    res.json({ expenses: userExpenses });
+  } catch (err: any) {
+    console.error('Get expenses error:', err);
+    res.status(500).json({ error: 'Failed to fetch expenses' });
+  }
 });
 
-// Create new expense
-app.post('/api/expenses', authenticateToken, (req: Request, res: Response) => {
+// Create new expense in MongoDB
+app.post('/api/expenses', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
   const { name, initialAmount, category, color } = req.body;
 
@@ -493,78 +474,119 @@ app.post('/api/expenses', authenticateToken, (req: Request, res: Response) => {
     updatedAt: new Date().toISOString(),
   };
 
-  db.expenses.unshift(newExpense);
-  saveDatabase();
-
-  res.status(201).json({ expense: newExpense });
+  try {
+    const { expensesCol: eCol, isMongo } = await getCollections();
+    if (isMongo) {
+      await eCol.insertOne(newExpense as any);
+    } else {
+      fallbackDb.expenses.unshift(newExpense);
+    }
+    res.status(201).json({ expense: newExpense });
+  } catch (err: any) {
+    console.error('Create expense error:', err);
+    res.status(500).json({ error: 'Failed to save expense account' });
+  }
 });
 
-// Update expense
-app.put('/api/expenses/:id', authenticateToken, (req: Request, res: Response) => {
+// Update expense in MongoDB
+app.put('/api/expenses/:id', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
   const { id } = req.params;
   const { name, initialAmount, category, color } = req.body;
 
-  const expense = db.expenses.find((e) => e.id === id && e.userId === user.id);
-  if (!expense) {
-    return res.status(404).json({ error: 'Expense not found' });
+  const updates: Partial<StoredExpense> = {
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (name !== undefined && name.trim()) updates.name = name.trim();
+  if (initialAmount !== undefined) updates.initialAmount = Math.max(0, Number(initialAmount) || 0);
+  if (category !== undefined) updates.category = category;
+  if (color !== undefined) updates.color = color;
+
+  try {
+    const { expensesCol: eCol, isMongo } = await getCollections();
+    if (isMongo) {
+      const result = await eCol.findOneAndUpdate(
+        { id, userId: user.id },
+        { $set: updates },
+        { returnDocument: 'after' }
+      );
+      if (!result) {
+        return res.status(404).json({ error: 'Expense not found' });
+      }
+      res.json({ expense: result });
+    } else {
+      const expense = fallbackDb.expenses.find((e) => e.id === id && e.userId === user.id);
+      if (!expense) return res.status(404).json({ error: 'Expense not found' });
+      Object.assign(expense, updates);
+      res.json({ expense });
+    }
+  } catch (err: any) {
+    console.error('Update expense error:', err);
+    res.status(500).json({ error: 'Failed to update expense account' });
   }
-
-  if (name !== undefined && name.trim()) expense.name = name.trim();
-  if (initialAmount !== undefined) expense.initialAmount = Math.max(0, Number(initialAmount) || 0);
-  if (category !== undefined) expense.category = category;
-  if (color !== undefined) expense.color = color;
-  expense.updatedAt = new Date().toISOString();
-
-  saveDatabase();
-  res.json({ expense });
 });
 
-// Delete expense and all its associated transactions
-app.delete('/api/expenses/:id', authenticateToken, (req: Request, res: Response) => {
+// Delete expense and all associated transactions from MongoDB
+app.delete('/api/expenses/:id', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
   const { id } = req.params;
 
-  const index = db.expenses.findIndex((e) => e.id === id && e.userId === user.id);
-  if (index === -1) {
-    return res.status(404).json({ error: 'Expense not found' });
+  try {
+    const { expensesCol: eCol, transactionsCol: tCol, isMongo } = await getCollections();
+    if (isMongo) {
+      await eCol.deleteOne({ id, userId: user.id });
+      await tCol.deleteMany({ expenseId: id, userId: user.id });
+    } else {
+      fallbackDb.expenses = fallbackDb.expenses.filter((e) => !(e.id === id && e.userId === user.id));
+      fallbackDb.transactions = fallbackDb.transactions.filter((t) => t.expenseId !== id);
+    }
+    res.json({ success: true, message: 'Expense and associated transactions deleted' });
+  } catch (err: any) {
+    console.error('Delete expense error:', err);
+    res.status(500).json({ error: 'Failed to delete expense account' });
   }
-
-  db.expenses.splice(index, 1);
-  // delete associated transactions
-  db.transactions = db.transactions.filter((t) => t.expenseId !== id);
-  saveDatabase();
-
-  res.json({ success: true, message: 'Expense and associated transactions deleted' });
 });
 
-// ==================== TRANSACTIONS CRUD ====================
+// ==================== TRANSACTIONS CRUD (MongoDB) ====================
 
-// Get all transactions for current user (optionally filtered by expenseId)
-app.get('/api/transactions', authenticateToken, (req: Request, res: Response) => {
+// Get all transactions for current user
+app.get('/api/transactions', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
   const { expenseId } = req.query;
 
-  let userTransactions = db.transactions.filter((t) => t.userId === user.id);
-  if (expenseId && typeof expenseId === 'string' && expenseId !== 'ALL') {
-    userTransactions = userTransactions.filter((t) => t.expenseId === expenseId);
-  }
+  try {
+    const { transactionsCol: tCol, isMongo } = await getCollections();
+    const query: any = { userId: user.id };
+    if (expenseId && typeof expenseId === 'string' && expenseId !== 'ALL') {
+      query.expenseId = expenseId;
+    }
 
-  res.json({ transactions: userTransactions });
+    let userTransactions: StoredTransaction[] = [];
+    if (isMongo) {
+      userTransactions = await tCol.find(query).sort({ date: -1, createdAt: -1 }).toArray();
+    } else {
+      userTransactions = fallbackDb.transactions.filter((t) => {
+        if (t.userId !== user.id) return false;
+        if (expenseId && expenseId !== 'ALL' && t.expenseId !== expenseId) return false;
+        return true;
+      });
+    }
+
+    res.json({ transactions: userTransactions });
+  } catch (err: any) {
+    console.error('Get transactions error:', err);
+    res.status(500).json({ error: 'Failed to fetch transactions' });
+  }
 });
 
-// Create new transaction
-app.post('/api/transactions', authenticateToken, (req: Request, res: Response) => {
+// Create new transaction in MongoDB
+app.post('/api/transactions', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
   const { expenseId, title, amount, type, date, time, notes, receiptUrl, paymentMethod } = req.body;
 
   if (!expenseId || !title || amount === undefined || !type) {
     return res.status(400).json({ error: 'Expense ID, title, amount, and type are required' });
-  }
-
-  const expense = db.expenses.find((e) => e.id === expenseId && e.userId === user.id);
-  if (!expense) {
-    return res.status(404).json({ error: 'Associated expense not found' });
   }
 
   const numAmount = Math.max(0, Number(amount) || 0);
@@ -591,105 +613,131 @@ app.post('/api/transactions', authenticateToken, (req: Request, res: Response) =
     createdAt: new Date().toISOString(),
   };
 
-  db.transactions.unshift(newTransaction);
-  expense.updatedAt = new Date().toISOString();
-  saveDatabase();
-
-  res.status(201).json({ transaction: newTransaction });
+  try {
+    const { transactionsCol: tCol, expensesCol: eCol, isMongo } = await getCollections();
+    if (isMongo) {
+      await tCol.insertOne(newTransaction as any);
+      await eCol.updateOne({ id: expenseId, userId: user.id }, { $set: { updatedAt: new Date().toISOString() } });
+    } else {
+      fallbackDb.transactions.unshift(newTransaction);
+      const exp = fallbackDb.expenses.find((e) => e.id === expenseId && e.userId === user.id);
+      if (exp) exp.updatedAt = new Date().toISOString();
+    }
+    res.status(201).json({ transaction: newTransaction });
+  } catch (err: any) {
+    console.error('Create transaction error:', err);
+    res.status(500).json({ error: 'Failed to record transaction' });
+  }
 });
 
-// Update transaction
-app.put('/api/transactions/:id', authenticateToken, (req: Request, res: Response) => {
+// Update transaction in MongoDB
+app.put('/api/transactions/:id', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
   const { id } = req.params;
   const { title, amount, type, date, time, notes, receiptUrl, paymentMethod, expenseId } = req.body;
 
-  const transaction = db.transactions.find((t) => t.id === id && t.userId === user.id);
-  if (!transaction) {
-    return res.status(404).json({ error: 'Transaction not found' });
-  }
-
-  if (title !== undefined && title.trim()) transaction.title = title.trim();
+  const updates: Partial<StoredTransaction> = {};
+  if (title !== undefined && title.trim()) updates.title = title.trim();
   if (amount !== undefined) {
     const num = Math.max(0, Number(amount) || 0);
-    if (num > 0) transaction.amount = num;
+    if (num > 0) updates.amount = num;
   }
-  if (type === 'CREDIT' || type === 'DEBIT') transaction.type = type;
-  if (date) transaction.date = date;
-  if (time) transaction.time = time;
-  if (notes !== undefined) transaction.notes = notes.trim();
-  if (receiptUrl !== undefined) transaction.receiptUrl = receiptUrl;
-  if (paymentMethod !== undefined) transaction.paymentMethod = paymentMethod;
-  if (expenseId) {
-    const exp = db.expenses.find((e) => e.id === expenseId && e.userId === user.id);
-    if (exp) transaction.expenseId = expenseId;
-  }
+  if (type === 'CREDIT' || type === 'DEBIT') updates.type = type;
+  if (date) updates.date = date;
+  if (time) updates.time = time;
+  if (notes !== undefined) updates.notes = notes.trim();
+  if (receiptUrl !== undefined) updates.receiptUrl = receiptUrl;
+  if (paymentMethod !== undefined) updates.paymentMethod = paymentMethod;
+  if (expenseId) updates.expenseId = expenseId;
 
-  saveDatabase();
-  res.json({ transaction });
+  try {
+    const { transactionsCol: tCol, isMongo } = await getCollections();
+    if (isMongo) {
+      const result = await tCol.findOneAndUpdate(
+        { id, userId: user.id },
+        { $set: updates },
+        { returnDocument: 'after' }
+      );
+      if (!result) {
+        return res.status(404).json({ error: 'Transaction not found' });
+      }
+      res.json({ transaction: result });
+    } else {
+      const transaction = fallbackDb.transactions.find((t) => t.id === id && t.userId === user.id);
+      if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+      Object.assign(transaction, updates);
+      res.json({ transaction });
+    }
+  } catch (err: any) {
+    console.error('Update transaction error:', err);
+    res.status(500).json({ error: 'Failed to update transaction' });
+  }
 });
 
-// Delete transaction
-app.delete('/api/transactions/:id', authenticateToken, (req: Request, res: Response) => {
+// Delete transaction from MongoDB
+app.delete('/api/transactions/:id', authenticateToken, async (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
   const { id } = req.params;
 
-  const index = db.transactions.findIndex((t) => t.id === id && t.userId === user.id);
-  if (index === -1) {
-    return res.status(404).json({ error: 'Transaction not found' });
+  try {
+    const { transactionsCol: tCol, isMongo } = await getCollections();
+    if (isMongo) {
+      await tCol.deleteOne({ id, userId: user.id });
+    } else {
+      fallbackDb.transactions = fallbackDb.transactions.filter((t) => !(t.id === id && t.userId === user.id));
+    }
+    res.json({ success: true, message: 'Transaction deleted' });
+  } catch (err: any) {
+    console.error('Delete transaction error:', err);
+    res.status(500).json({ error: 'Failed to delete transaction' });
   }
-
-  db.transactions.splice(index, 1);
-  saveDatabase();
-
-  res.json({ success: true, message: 'Transaction deleted' });
 });
 
-// ==================== MEDIA / CLOUDINARY UPLOAD ====================
+// ==================== CLOUDINARY UPLOAD ROUTE ====================
 
 app.post('/api/upload', authenticateToken, async (req: Request, res: Response) => {
   const { imageBase64 } = req.body;
   if (!imageBase64) {
-    return res.status(400).json({ error: 'imageBase64 is required' });
+    return res.status(400).json({ error: 'imageBase64 image data is required' });
   }
 
-  // Check if Cloudinary environment variables are available
-  const cloudinaryUrl = process.env.CLOUDINARY_URL;
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  try {
+    // Direct authenticated upload to Cloudinary using user's credentials
+    const uploadResult = await cloudinary.uploader.upload(imageBase64, {
+      folder: 'rupeetrack',
+      resource_type: 'image',
+    });
 
-  if (cloudinaryUrl || (cloudName && apiKey && apiSecret)) {
-    try {
-      // Direct Cloudinary HTTP upload
-      const effectiveCloud = cloudName || (cloudinaryUrl ? cloudinaryUrl.split('@')[1] : '');
-      const formData = new URLSearchParams();
-      formData.append('file', imageBase64);
-      formData.append('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset');
-
-      const cRes = await fetch(`https://api.cloudinary.com/v1_1/${effectiveCloud}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (cRes.ok) {
-        const cData = await cRes.json() as { secure_url?: string };
-        if (cData.secure_url) {
-          return res.json({ url: cData.secure_url, provider: 'cloudinary' });
-        }
-      }
-    } catch (err) {
-      console.warn('Cloudinary upload attempt encountered an issue, falling back to secure store', err);
-    }
+    console.log('✅ Cloudinary upload succeeded:', uploadResult.secure_url);
+    return res.json({
+      url: uploadResult.secure_url,
+      provider: 'cloudinary',
+      public_id: uploadResult.public_id,
+    });
+  } catch (err: any) {
+    console.error('Cloudinary upload warning:', err.message);
+    // If Cloudinary encounter issues, fallback safely
+    return res.json({ url: imageBase64, provider: 'fallback' });
   }
+});
 
-  // High performance local data store fallback
-  res.json({ url: imageBase64, provider: 'local' });
+// Database health and status check
+app.get('/api/health', async (_req: Request, res: Response) => {
+  const { isMongo } = await getCollections();
+  res.json({
+    status: 'ok',
+    database: isMongo ? 'MongoDB (Noteruppee)' : 'Fallback Local',
+    mediaStorage: 'Cloudinary (dsugarjot)',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // ==================== VITE / STATIC MOUNTING ====================
 
 async function startServer() {
+  // Connect to MongoDB on boot
+  await initMongoConnection();
+
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.resolve(process.cwd(), 'dist')));
     app.get('*', (_req: Request, res: Response) => {
@@ -704,7 +752,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`RupeeTrack Server running on http://0.0.0.0:${PORT}`);
+    console.log(`🚀 RupeeTrack Server running on http://0.0.0.0:${PORT}`);
   });
 }
 

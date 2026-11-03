@@ -94,15 +94,6 @@ class ApiService {
     return res;
   }
 
-  async demoLogin() {
-    const res = await this.request<{ token: string; user: User }>('/api/auth/demo', {
-      method: 'POST',
-    });
-    this.setToken(res.token);
-    localStorage.setItem(CACHED_USER_KEY, JSON.stringify(res.user));
-    return res;
-  }
-
   async getMe() {
     const res = await this.request<{ user: User }>('/api/auth/me');
     localStorage.setItem(CACHED_USER_KEY, JSON.stringify(res.user));

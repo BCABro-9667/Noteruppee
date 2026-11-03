@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 
 export const LandingPageView: React.FC = () => {
-  const { login, register, demoLogin } = useAuth();
+  const { login, register } = useAuth();
 
   // Auth Form State (Right side of Hero)
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -82,18 +82,6 @@ export const LandingPageView: React.FC = () => {
       }
     } catch (err: any) {
       setAuthError(err.message || 'Authentication failed. Please check your credentials.');
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
-  const handleDemoAccess = async () => {
-    setAuthError(null);
-    setAuthLoading(true);
-    try {
-      await demoLogin();
-    } catch (err: any) {
-      setAuthError(err.message || 'Failed to start demo session');
     } finally {
       setAuthLoading(false);
     }
@@ -210,16 +198,6 @@ export const LandingPageView: React.FC = () => {
           <div className="hidden md:flex items-center gap-3">
             <button
               type="button"
-              onClick={handleDemoAccess}
-              disabled={authLoading}
-              className="px-4 py-2.5 rounded-[50px] text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Explore Demo</span>
-            </button>
-
-            <button
-              type="button"
               onClick={scrollToAuth}
               className="px-5 py-2.5 rounded-[50px] text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/25 transition active:scale-95 flex items-center gap-1.5"
             >
@@ -269,14 +247,6 @@ export const LandingPageView: React.FC = () => {
               Contact Us
             </button>
             <div className="pt-2 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={handleDemoAccess}
-                className="w-full py-2.5 rounded-[50px] text-xs font-bold text-slate-800 bg-slate-100 flex items-center justify-center gap-1.5"
-              >
-                <Sparkles className="w-4 h-4 text-blue-600" />
-                <span>Instant Demo Mode</span>
-              </button>
               <button
                 type="button"
                 onClick={scrollToAuth}
@@ -381,24 +351,6 @@ export const LandingPageView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Instant Demo Banner */}
-                <div className="mb-5 p-3 rounded-2xl bg-blue-50/80 border border-blue-100 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
-                    <div className="truncate">
-                      <p className="text-xs font-bold text-blue-950 truncate">Want a test drive?</p>
-                      <p className="text-[11px] text-blue-700/90 truncate">Access pre-filled demo ledgers</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleDemoAccess}
-                    disabled={authLoading}
-                    className="px-3.5 py-1.5 rounded-[50px] bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs active:scale-95 disabled:opacity-50 shrink-0"
-                  >
-                    1-Click Demo
-                  </button>
-                </div>
 
                 {/* Login / Register Toggle Tabs */}
                 <div className="flex p-1 bg-slate-100 rounded-xl mb-5">

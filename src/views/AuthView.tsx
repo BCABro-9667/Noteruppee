@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { Lock, Mail, User, Sparkles, ArrowRight, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export const AuthView: React.FC = () => {
-  const { login, register, demoLogin } = useAuth();
+  const { login, register } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
@@ -45,18 +45,6 @@ export const AuthView: React.FC = () => {
     }
   };
 
-  const handleDemoAccess = async () => {
-    setError(null);
-    setIsLoading(true);
-    try {
-      await demoLogin();
-    } catch (err: any) {
-      setError(err.message || 'Failed to start demo session');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center items-center px-4 py-8 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
@@ -65,24 +53,6 @@ export const AuthView: React.FC = () => {
 
         {/* Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 border border-slate-200/90">
-          {/* Quick 1-Click Demo Login Banner */}
-          <div className="mb-6 p-3.5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <Sparkles className="w-5 h-5 text-blue-600 shrink-0" />
-              <div>
-                <p className="text-xs font-bold text-blue-900">Instant Demo Mode</p>
-                <p className="text-[11px] text-blue-700/80">Explore preloaded accounts & ledgers</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleDemoAccess}
-              disabled={isLoading}
-              className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition active:scale-95 disabled:opacity-50 shrink-0"
-            >
-              Explore Demo
-            </button>
-          </div>
 
           {/* Mode Switch Tabs */}
           <div className="flex p-1 bg-slate-100 rounded-xl mb-6">
