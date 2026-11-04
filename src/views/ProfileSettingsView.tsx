@@ -304,9 +304,7 @@ export const ProfileSettingsView: React.FC = () => {
               >
                 Change Photo
               </button>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Supports Cloudinary & local storage. JPG, PNG under 8MB.
-              </p>
+             
             </div>
           </div>
 
@@ -427,9 +425,7 @@ export const ProfileSettingsView: React.FC = () => {
                   <option value="Take">Take</option>
                   <option value="Liya">Liya</option>
                 </select>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Reflected in forms, lists, and summary cards.
-                </p>
+               
               </div>
 
               {/* Credit Terminology Dropdown */}
@@ -446,9 +442,7 @@ export const ProfileSettingsView: React.FC = () => {
                   <option value="Give">Give</option>
                   <option value="Diya">Diya</option>
                 </select>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Reflected in forms, lists, and summary cards.
-                </p>
+          
               </div>
 
               {/* Currency Symbol Dropdown */}
@@ -467,9 +461,7 @@ export const ProfileSettingsView: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Default: Indian Rupee (₹).
-                </p>
+               
               </div>
             </div>
 
