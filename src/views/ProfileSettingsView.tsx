@@ -177,37 +177,83 @@ export const ProfileSettingsView: React.FC = () => {
     }
   };
 
+  // Tab state: 'profile' | 'terminology' | 'security'
+  const [activeTab, setActiveTab] = useState<'profile' | 'terminology' | 'security'>('profile');
+
   return (
-    <div className="max-w-4xl mx-auto space-y-7 animate-in fade-in duration-150">
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-150">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Profile & Settings
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Manage your personal profile, customized transaction terminology, and currency preferences.
+            Manage your personal profile, customized transaction terminology, and security preferences.
           </p>
         </div>
 
         <button
           onClick={logout}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[50px] text-xs sm:text-sm font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 transition self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[50px] text-xs sm:text-sm font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-0 bg-rose-50/70 transition self-start sm:self-auto cursor-pointer shadow-2xs"
         >
           <LogOut className="w-4 h-4" />
           <span>Sign Out</span>
         </button>
       </div>
 
-      {/* SECTION A: Personal Details */}
-      <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-2xs border-0">
-        <div className="flex items-center justify-between pb-3 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <User className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Personal Details</h2>
+      {/* Tabs Navigation */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-100/90 rounded-[50px] overflow-x-auto border-0">
+        <button
+          type="button"
+          onClick={() => setActiveTab('profile')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-[50px] text-xs sm:text-sm font-bold transition cursor-pointer whitespace-nowrap border-0 ${
+            activeTab === 'profile'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <User className="w-4 h-4" />
+          <span>Personal Profile</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('terminology')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-[50px] text-xs sm:text-sm font-bold transition cursor-pointer whitespace-nowrap border-0 ${
+            activeTab === 'terminology'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <Coins className="w-4 h-4" />
+          <span>Transaction & Currency</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('security')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-[50px] text-xs sm:text-sm font-bold transition cursor-pointer whitespace-nowrap border-0 ${
+            activeTab === 'security'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>Security & Password</span>
+        </button>
+      </div>
+
+      {/* SECTION A: Personal Details Tab */}
+      {activeTab === 'profile' && (
+        <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-2xs border-0 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between pb-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <User className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-slate-900">Personal Details</h2>
               <p className="text-xs text-slate-400">View and update your personal information</p>
             </div>
           </div>
@@ -334,228 +380,233 @@ export const ProfileSettingsView: React.FC = () => {
             <button
               type="submit"
               disabled={profileSaving}
-              className="px-6 py-2.5 rounded-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition active:scale-95 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               {profileSaving ? 'Saving...' : 'Save Personal Details'}
             </button>
           </div>
         </form>
       </div>
+      )}
 
-      {/* SECTION B: Transaction Settings */}
-      <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-2xs border-0">
-        <div className="flex items-center justify-between pb-3 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <Coins className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Transaction & Currency Settings</h2>
-              <p className="text-xs text-slate-400">
-                Customize Debit/Credit terminology (Take/Give, Liya/Diya) and currency symbol
-              </p>
-            </div>
-          </div>
-          {settingsSuccess && (
-            <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 animate-in fade-in">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Settings Updated!
-            </span>
-          )}
-        </div>
-
-        <form onSubmit={handleSaveSettings} className="space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Debit Terminology Dropdown */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                Debit Dropdown (Money Out)
-              </label>
-              <select
-                value={debitLabel}
-                onChange={(e) => setDebitLabel(e.target.value as DebitTerminology)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-rose-600 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              >
-                <option value="Debit">Debit</option>
-                <option value="Take">Take</option>
-                <option value="Liya">Liya</option>
-              </select>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Reflected in forms, lists, and summary cards.
-              </p>
-            </div>
-
-            {/* Credit Terminology Dropdown */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                Credit Dropdown (Money In)
-              </label>
-              <select
-                value={creditLabel}
-                onChange={(e) => setCreditLabel(e.target.value as CreditTerminology)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-emerald-600 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              >
-                <option value="Credit">Credit</option>
-                <option value="Give">Give</option>
-                <option value="Diya">Diya</option>
-              </select>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Reflected in forms, lists, and summary cards.
-              </p>
-            </div>
-
-            {/* Currency Symbol Dropdown */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                Currency Symbol Dropdown
-              </label>
-              <select
-                value={currencySymbol}
-                onChange={(e) => setCurrencySymbol(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              >
-                {CURRENCIES.map((curr) => (
-                  <option key={curr.symbol} value={curr.symbol}>
-                    {curr.label}
-                  </option>
-                ))}
-              </select>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Default: Indian Rupee (₹).
-              </p>
-            </div>
-          </div>
-
-          {/* Live Preview Demonstration Card */}
-          <div className="p-4 rounded-2xl bg-slate-50/80 border-0">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Live Preview of your chosen terms:
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-[50px] bg-white border border-rose-200 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-rose-500" />
-                <span className="text-xs font-bold text-rose-600">{debitLabel} (Out): −{currencySymbol}1,500</span>
+      {/* SECTION B: Transaction Settings Tab */}
+      {activeTab === 'terminology' && (
+        <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-2xs border-0 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between pb-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <Coins className="w-4 h-4" />
               </div>
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-[50px] bg-white border border-emerald-200 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="text-xs font-bold text-emerald-600">{creditLabel} (In): +{currencySymbol}5,000</span>
+              <div>
+                <h2 className="text-base font-bold text-slate-900">Transaction & Currency Settings</h2>
+                <p className="text-xs text-slate-400">
+                  Customize Debit/Credit terminology (Take/Give, Liya/Diya) and currency symbol
+                </p>
               </div>
             </div>
+            {settingsSuccess && (
+              <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 animate-in fade-in">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Settings Updated!
+              </span>
+            )}
           </div>
 
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              disabled={settingsSaving}
-              className="px-6 py-2.5 rounded-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition active:scale-95 disabled:opacity-50"
-            >
-              {settingsSaving ? 'Saving...' : 'Save Settings'}
-            </button>
-          </div>
-        </form>
-      </div>
+          <form onSubmit={handleSaveSettings} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Debit Terminology Dropdown */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Debit Dropdown (Money Out)
+                </label>
+                <select
+                  value={debitLabel}
+                  onChange={(e) => setDebitLabel(e.target.value as DebitTerminology)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-rose-600 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
+                >
+                  <option value="Debit">Debit</option>
+                  <option value="Take">Take</option>
+                  <option value="Liya">Liya</option>
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Reflected in forms, lists, and summary cards.
+                </p>
+              </div>
 
-      {/* SECTION C: Security Settings – Change Password */}
-      <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-2xs border-0">
-        <div className="flex items-center justify-between pb-3 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <ShieldCheck className="w-4 h-4" />
+              {/* Credit Terminology Dropdown */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Credit Dropdown (Money In)
+                </label>
+                <select
+                  value={creditLabel}
+                  onChange={(e) => setCreditLabel(e.target.value as CreditTerminology)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-emerald-600 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
+                >
+                  <option value="Credit">Credit</option>
+                  <option value="Give">Give</option>
+                  <option value="Diya">Diya</option>
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Reflected in forms, lists, and summary cards.
+                </p>
+              </div>
+
+              {/* Currency Symbol Dropdown */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Currency Symbol Dropdown
+                </label>
+                <select
+                  value={currencySymbol}
+                  onChange={(e) => setCurrencySymbol(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
+                >
+                  {CURRENCIES.map((curr) => (
+                    <option key={curr.symbol} value={curr.symbol}>
+                      {curr.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Default: Indian Rupee (₹).
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Security Settings – Change Password</h2>
-              <p className="text-xs text-slate-400">
-                Verify old password and confirm new password
-              </p>
+
+            {/* Live Preview Demonstration Card */}
+            <div className="p-4 rounded-2xl bg-slate-50/80 border-0">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                Live Preview of your chosen terms:
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-[50px] bg-white border border-rose-200 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  <span className="text-xs font-bold text-rose-600">{debitLabel} (Out): −{currencySymbol}1,500</span>
+                </div>
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-[50px] bg-white border border-emerald-200 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-bold text-emerald-600">{creditLabel} (In): +{currencySymbol}5,000</span>
+                </div>
+              </div>
             </div>
-          </div>
-          {passwordSuccess && (
-            <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 animate-in fade-in">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Password Changed!
-            </span>
-          )}
-        </div>
 
-        {passwordError && (
-          <div className="flex items-center gap-2 p-3 mb-4 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{passwordError}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSavePassword} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-              Enter Old Password <span className="text-rose-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showOld ? 'text' : 'password'}
-                required
-                placeholder="••••••••"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-[50px] border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-              />
+            <div className="flex justify-end pt-2">
               <button
-                type="button"
-                onClick={() => setShowOld(!showOld)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                type="submit"
+                disabled={settingsSaving}
+                className="px-6 py-2.5 rounded-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
               >
-                {showOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {settingsSaving ? 'Saving...' : 'Save Settings'}
               </button>
             </div>
+          </form>
+        </div>
+      )}
+
+      {/* SECTION C: Security Settings – Change Password Tab */}
+      {activeTab === 'security' && (
+        <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-2xs border-0 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between pb-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-slate-900">Security Settings – Change Password</h2>
+                <p className="text-xs text-slate-400">
+                  Verify old password and confirm new password
+                </p>
+              </div>
+            </div>
+            {passwordSuccess && (
+              <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 animate-in fade-in">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Password Changed!
+              </span>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {passwordError && (
+            <div className="flex items-center gap-2 p-3 mb-4 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{passwordError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSavePassword} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                Enter New Password <span className="text-rose-500">*</span>
+                Enter Old Password <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <input
-                  type={showNew ? 'text' : 'password'}
+                  type={showOld ? 'text' : 'password'}
                   required
-                  placeholder="Min 6 characters"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-[50px] border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowNew(!showNew)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  onClick={() => setShowOld(!showOld)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
-                  {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                Confirm New Password <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="password"
-                required
-                placeholder="Repeat new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-[50px] border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-              />
-            </div>
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Enter New Password <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNew ? 'text' : 'password'}
+                    required
+                    placeholder="Min 6 characters"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-[50px] border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew(!showNew)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
 
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              disabled={passwordSaving}
-              className="px-6 py-2.5 rounded-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition active:scale-95 disabled:opacity-50"
-            >
-              {passwordSaving ? 'Updating...' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Confirm New Password <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Repeat new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-[50px] border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={passwordSaving}
+                className="px-6 py-2.5 rounded-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
+              >
+                {passwordSaving ? 'Updating...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

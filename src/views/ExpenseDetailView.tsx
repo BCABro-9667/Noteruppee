@@ -141,16 +141,12 @@ export const ExpenseDetailView: React.FC<ExpenseDetailViewProps> = ({
             {/* Thin Divider */}
             <div className="w-[1px] h-7 bg-slate-200 shrink-0" />
 
-            {/* Remaining */}
+            {/* Remaining - Shown in grey */}
             <div className="text-left sm:text-right shrink-0">
               <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Remaining
               </div>
-              <div
-                className={`text-sm sm:text-lg font-black ${
-                  activeExpenseSummary.remainingAmount >= 0 ? 'text-emerald-600' : 'text-rose-600'
-                }`}
-              >
+              <div className="text-sm sm:text-lg font-black text-slate-600">
                 {formatCurrency(activeExpenseSummary.remainingAmount, currencySymbol)}
               </div>
             </div>

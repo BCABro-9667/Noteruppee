@@ -137,7 +137,7 @@ export const TransactionsView: React.FC = () => {
             {/* Thin Divider */}
             <div className="w-[1px] h-7 bg-slate-200 shrink-0" />
 
-            {/* Remaining / Net */}
+            {/* Remaining / Net - Shown in grey */}
             <div className="text-left sm:text-right shrink-0">
               <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Net Remaining
@@ -147,7 +147,7 @@ export const TransactionsView: React.FC = () => {
                 const totalOut = filteredList.filter((t) => t.type === 'DEBIT').reduce((s, t) => s + t.amount, 0);
                 const net = totalIn - totalOut;
                 return (
-                  <div className={`text-sm sm:text-lg font-black ${net >= 0 ? 'text-blue-700' : 'text-rose-600'}`}>
+                  <div className="text-sm sm:text-lg font-black text-slate-600">
                     {net < 0 ? '−' : ''}{formatCurrency(Math.abs(net), currencySymbol)}
                   </div>
                 );
@@ -157,8 +157,8 @@ export const TransactionsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Search & Expendable Filters Container */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 space-y-3">
+      {/* Search & Expendable Filters Container - borderless & outlineless */}
+      <div className="bg-white rounded-3xl border-0 outline-none shadow-2xs p-4 sm:p-5 space-y-3">
         {/* Search Only Visibly Shown by Default + Filter Expend Button */}
         <div className="flex items-center gap-2.5">
           <div className="relative flex-1">
@@ -168,7 +168,7 @@ export const TransactionsView: React.FC = () => {
               placeholder="Search transactions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-[50px] border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+              className="w-full pl-9 pr-4 py-2.5 rounded-[50px] border-0 outline-none bg-slate-100/70 text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0 transition"
             />
           </div>
 
@@ -176,7 +176,7 @@ export const TransactionsView: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsFilterExpanded(!isFilterExpanded)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-[50px] text-xs font-bold transition shrink-0 ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-[50px] text-xs font-bold transition shrink-0 border-0 outline-none ${
               isFilterExpanded || activeFiltersCount > 0
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
@@ -205,7 +205,7 @@ export const TransactionsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setTypeFilter('ALL')}
-                  className={`px-3.5 py-1.5 rounded-[50px] text-xs font-bold transition ${
+                  className={`px-3.5 py-1.5 rounded-[50px] text-xs font-bold transition border-0 outline-none ${
                     typeFilter === 'ALL' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -214,7 +214,7 @@ export const TransactionsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setTypeFilter('DEBIT')}
-                  className={`px-3.5 py-1.5 rounded-[50px] text-xs font-bold transition ${
+                  className={`px-3.5 py-1.5 rounded-[50px] text-xs font-bold transition border-0 outline-none ${
                     typeFilter === 'DEBIT' ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:text-rose-700'
                   }`}
                 >
@@ -223,7 +223,7 @@ export const TransactionsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setTypeFilter('CREDIT')}
-                  className={`px-3.5 py-1.5 rounded-[50px] text-xs font-bold transition ${
+                  className={`px-3.5 py-1.5 rounded-[50px] text-xs font-bold transition border-0 outline-none ${
                     typeFilter === 'CREDIT' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-emerald-700'
                   }`}
                 >
@@ -232,7 +232,7 @@ export const TransactionsView: React.FC = () => {
               </div>
             </div>
 
-            {/* Dropdowns & Date Range */}
+            {/* Dropdowns & Date Range - borderless & outlineless */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {/* Expense Account Dropdown */}
               <div>
@@ -243,7 +243,7 @@ export const TransactionsView: React.FC = () => {
                   <select
                     value={selectedExpenseId}
                     onChange={(e) => setSelectedExpenseId(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-[50px] border border-slate-200 text-xs font-medium text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
+                    className="w-full px-3.5 py-2.5 rounded-[50px] border-0 outline-none text-xs font-medium text-slate-800 bg-slate-100/70 focus:outline-none focus:ring-0 appearance-none"
                   >
                     <option value="ALL">All Expense Accounts</option>
                     {expenses.map((exp) => (
@@ -265,7 +265,7 @@ export const TransactionsView: React.FC = () => {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
-                    className="w-full px-3.5 py-2 rounded-[50px] border border-slate-200 text-xs font-medium text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
+                    className="w-full px-3.5 py-2.5 rounded-[50px] border-0 outline-none text-xs font-medium text-slate-800 bg-slate-100/70 focus:outline-none focus:ring-0 appearance-none"
                   >
                     <option value="newest">Date: Newest First</option>
                     <option value="oldest">Date: Oldest First</option>
@@ -285,7 +285,7 @@ export const TransactionsView: React.FC = () => {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-[50px] border border-slate-200 text-xs font-medium text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-3.5 py-2.5 rounded-[50px] border-0 outline-none text-xs font-medium text-slate-800 bg-slate-100/70 focus:outline-none focus:ring-0"
                 />
               </div>
 
@@ -298,7 +298,7 @@ export const TransactionsView: React.FC = () => {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-[50px] border border-slate-200 text-xs font-medium text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-3.5 py-2.5 rounded-[50px] border-0 outline-none text-xs font-medium text-slate-800 bg-slate-100/70 focus:outline-none focus:ring-0"
                 />
               </div>
             </div>
