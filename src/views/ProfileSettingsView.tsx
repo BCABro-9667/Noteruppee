@@ -10,7 +10,6 @@ import {
   Camera,
   Settings,
   Lock,
-  LogOut,
   CheckCircle2,
   AlertCircle,
   Coins,
@@ -31,7 +30,7 @@ const CURRENCIES = [
 ];
 
 export const ProfileSettingsView: React.FC = () => {
-  const { user, updateProfile, changePassword, logout } = useAuth();
+  const { user, updateProfile, changePassword } = useAuth();
   const { uploadReceipt } = useExpense();
 
   // Section A: Personal Details state
@@ -183,23 +182,10 @@ export const ProfileSettingsView: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-150">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            Profile & Settings
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Manage your personal profile, customized transaction terminology, and security preferences.
-          </p>
-        </div>
-
-        <button
-          onClick={logout}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[50px] text-xs sm:text-sm font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-0 bg-rose-50/70 transition self-start sm:self-auto cursor-pointer shadow-2xs"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Sign Out</span>
-        </button>
+      <div className="pb-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+          Profile & Settings
+        </h1>
       </div>
 
       {/* Tabs Navigation */}

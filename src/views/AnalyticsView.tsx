@@ -16,15 +16,20 @@ import {
   ShoppingBag,
   Sparkles,
 } from 'lucide-react';
+import { AnalyticsSkeleton } from '../components/SkeletonLoader.tsx';
 
 export const AnalyticsView: React.FC = () => {
-  const { expenses, transactions } = useExpense();
+  const { expenses, transactions, loading } = useExpense();
   const { currencySymbol, debitLabel, creditLabel } = useAuth();
 
   const [timeRange, setTimeRange] = useState<'ALL' | '30DAYS' | 'THIS_MONTH'>('ALL');
   const [selectedExpenseId, setSelectedExpenseId] = useState<string>('ALL');
   const [barChartMode, setBarChartMode] = useState<'cashflow' | 'category'>('cashflow');
   const [hoveredBarId, setHoveredBarId] = useState<string | null>(null);
+
+  if (loading) {
+    return <AnalyticsSkeleton />;
+  }
 
   // Filter transactions based on time range and selected expense account
   const filteredTransactions = useMemo(() => {

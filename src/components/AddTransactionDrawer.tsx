@@ -55,7 +55,7 @@ export const AddTransactionDrawer: React.FC<AddTransactionDrawerProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'UPI' | 'Card' | 'Net Banking' | 'Other'>('UPI');
   const [notes, setNotes] = useState('');
   const [receiptBase64, setReceiptBase64] = useState<string | null>(null);
-  const [isMoreDetailsExpanded, setIsMoreDetailsExpanded] = useState(true);
+  const [isMoreDetailsExpanded, setIsMoreDetailsExpanded] = useState(false);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,12 +63,15 @@ export const AddTransactionDrawer: React.FC<AddTransactionDrawerProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync defaultExpenseId when opened or changed
+  // Sync defaultExpenseId and always collapse more details when opened
   useEffect(() => {
-    if (defaultExpenseId) {
-      setSelectedExpenseId(defaultExpenseId);
-    } else if (expenses.length > 0 && !selectedExpenseId) {
-      setSelectedExpenseId(expenses[0].id);
+    if (isOpen) {
+      setIsMoreDetailsExpanded(false);
+      if (defaultExpenseId) {
+        setSelectedExpenseId(defaultExpenseId);
+      } else if (expenses.length > 0 && !selectedExpenseId) {
+        setSelectedExpenseId(expenses[0].id);
+      }
     }
   }, [defaultExpenseId, expenses, isOpen]);
 

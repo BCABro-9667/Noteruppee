@@ -21,9 +21,10 @@ import {
 } from 'lucide-react';
 import { Transaction } from '../types/index.ts';
 import { AddTransactionDrawer } from '../components/AddTransactionDrawer.tsx';
+import { TransactionsSkeleton } from '../components/SkeletonLoader.tsx';
 
 export const TransactionsView: React.FC = () => {
-  const { transactions, expenses, deleteTransaction } = useExpense();
+  const { transactions, expenses, deleteTransaction, loading } = useExpense();
   const { user, currencySymbol, debitLabel, creditLabel } = useAuth();
 
   // Filters state
@@ -34,6 +35,10 @@ export const TransactionsView: React.FC = () => {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  if (loading) {
+    return <TransactionsSkeleton />;
+  }
 
   // Accordion state: only one transaction expanded at a time
   const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
@@ -339,11 +344,11 @@ export const TransactionsView: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsPrintSlipOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[50px] bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition border border-slate-200 cursor-pointer active:scale-95 shadow-2xs"
-              title="Print or export statement slip on A4 paper"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 cursor-pointer active:scale-95 shadow-2xs"
+              title="Print Statement Slip (A4)"
+              aria-label="Print Statement Slip"
             >
-              <Printer className="w-3.5 h-3.5 text-blue-600" />
-              <span>Print Slip (A4)</span>
+              <Printer className="w-4 h-4 text-blue-600" />
             </button>
           )}
         </div>

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Transaction } from '../types/index.ts';
 import { AddTransactionDrawer } from '../components/AddTransactionDrawer.tsx';
+import { TransactionsSkeleton } from '../components/SkeletonLoader.tsx';
 
 interface ExpenseDetailViewProps {
   onBack: () => void;
@@ -36,6 +37,7 @@ export const ExpenseDetailView: React.FC<ExpenseDetailViewProps> = ({
     activeExpenseTransactions,
     activeExpenseSummary,
     deleteTransaction,
+    loading,
   } = useExpense();
 
   const { currencySymbol, debitLabel, creditLabel } = useAuth();
@@ -63,6 +65,10 @@ export const ExpenseDetailView: React.FC<ExpenseDetailViewProps> = ({
       setIsDeletingTx(false);
     }
   };
+
+  if (loading) {
+    return <TransactionsSkeleton />;
+  }
 
   if (!activeExpense || !activeExpenseSummary) {
     return (
@@ -155,11 +161,11 @@ export const ExpenseDetailView: React.FC<ExpenseDetailViewProps> = ({
             <div className="w-[1px] h-7 bg-slate-200 shrink-0 hidden sm:block" />
             <button
               onClick={() => setIsPrintSlipOpen(true)}
-              className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-[50px] bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition border border-slate-200 shrink-0 active:scale-95 cursor-pointer"
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 shrink-0 active:scale-95 cursor-pointer shadow-2xs"
               title="Print Expense Statement Slip"
+              aria-label="Print Statement Slip"
             >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print Slip</span>
+              <Printer className="w-4 h-4 text-blue-600" />
             </button>
           </div>
         </div>

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Expense } from '../types/index.ts';
 import { EditExpenseModal } from '../components/EditExpenseModal.tsx';
+import { DashboardSkeleton } from '../components/SkeletonLoader.tsx';
 
 interface DashboardViewProps {
   onSelectExpense: (expenseId: string) => void;
@@ -27,13 +28,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenCreateModal,
   onDeleteExpense,
 }) => {
-  const { expenses, transactions } = useExpense();
+  const { expenses, transactions, loading } = useExpense();
   const { user, currencySymbol } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [expandedExpenseIds, setExpandedExpenseIds] = useState<Record<string, boolean>>({});
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   const toggleExpand = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
